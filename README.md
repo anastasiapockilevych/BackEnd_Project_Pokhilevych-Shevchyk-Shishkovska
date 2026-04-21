@@ -1,32 +1,30 @@
-# ExpressJsLab4Template
+# 🗳️ Платформа для голосування (Лабораторна робота)
 
-## Initial Machine Setup
+Привіт! Це базовий каркас для нашої лабораторної роботи зі створення API для платформи голосування. Тут вже налаштовано сервер на Node.js (Express), базове підключення до бази даних MongoDB та каркас для автогенерації документації Swagger. 
 
-1. **Install NodeJS 22**
+## 🚀 Швидкий старт (Інструкція з налаштування)
 
-## Get Started
+### 1. Встановлення залежностей
+Відкрийте термінал у папці з проєктом та виконайте команду для завантаження всіх необхідних бібліотек:
+npm install
 
-1. **Install** `npm install`
-2. **Configure mysql connection** [config file](https://github.com/ol-kyrychenko/ExpressJsLab4Template/blob/main/config/db.config.js)
-2. **Run the app** `npm run start`
+## 2. Встановіть залежності
+Відкрийте термінал у папці з проєктом та завантажте всі необхідні бібліотеки:
+npm install
 
-## Documentation
-Swagger docs can be found at:
-- http://localhost:3000/api-docs/
+## 3. Запустіть сервер
+Підключення до бази (файл .env) вже є в репозиторії. Просто запустіть проєкт командою:
+npm start
+Якщо все добре, у терміналі ви побачите: ✅ Успішно підключено до MongoDB Atlas!.
 
-### Linting
+## 🎲 База даних вже готова!
+Увага: Вам НЕ потрібно створювати базу з нуля чи щось туди додавати. База вже створена і заповнена кандидатами з виборів 2014 року (у всіх наразі 0 голосів).
+Ви можете одразу писати запити до існуючих даних!
 
-Code linters: [eslint](https://eslint.org/) with pluggable [Prettier](https://github.com/jlongster/prettier) configs.
+## 📖 Документація (Swagger API)
+У проєкті підключено інтерфейс для тестування маршрутів (Swagger). Він замінює Postman і дозволяє зручно перевіряти написані функції.
+Після запуску сервера документація доступна тут:
+👉 http://localhost:3000/api-docs
 
-- run: `npm run lint`
-- fix JS errors: `lint:fix`
-  Eslint configuration file: [here](.eslintrc.json)
+Порада: коли створюєте новий маршрут у папці routes, пишіть над ним JSDoc-коментарі (починаються з /** @swagger), щоб він автоматично з'являвся на цій сторінці!
 
-### Testing
-
-We use Jest for unit tests. Test file for .js should be named as .test.js and be placed along with code file.
-
-- run unit tests: `npm run test`
-- run tests with coverage: `npm run test:cover`
-
-Refer to this [document](https://jestjs.io/docs/en/api) for more details.
