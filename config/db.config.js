@@ -1,12 +1,7 @@
-const config = {
-    db: {
-        /* don't expose password or any sensitive info, done only for demo */
-        host: 'localhost',
-        user: 'app_user', // Provide your user here
-        password: 'app_pwd', // Provide your password here
-        database: 'employees', // Provide your db name here
-        connectTimeout: 60000,
-    },
-    listPerPage: 10,
-};
-module.exports = config;
+const mongoose = require('mongoose');
+require('dotenv').config();
+
+// Додаємо { family: 4 } ось сюди другим параметром:
+mongoose.connect(process.env.MONGO_URI, { family: 4 })
+  .then(() => console.log("✅ Успішно підключено до MongoDB Atlas!"))
+  .catch((error) => console.log("❌ Помилка підключення до бази:", error));

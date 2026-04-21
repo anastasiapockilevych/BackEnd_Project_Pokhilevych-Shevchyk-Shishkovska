@@ -8,8 +8,32 @@ const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
+require('./config/db.config'); 
 
 const app = express();
+
+// --- Єдине правильне налаштування Swagger ---
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'API Платформи для голосування',
+      version: '1.0.0',
+      description: 'Документація для лабораторної роботи',
+    },
+    servers: [
+      {
+        url: 'http://localhost:3000',
+        description: 'Локальний сервер'
+      },
+    ],
+  },
+  apis: ['./routes/*.js'], 
+};
+
+const swaggerDocs = swaggerJSDoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+// ---------------------------------------------
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -20,32 +44,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-const swaggerOptions = {
-    swaggerDefinition: {
-        info: {
-            version: '1.0.0',
-            title: 'Express Application',
-            description: 'Express Application API Documentation'
-        },
-        schemes: ['http'],
-        consumes: ['application/json'],
-        produces: ['application/json']
-    },
-    apis: [
-        './models/*.js',
-        './controllers/*.js'
-    ]
-};
-
-const swaggerSpec = swaggerJSDoc(swaggerOptions);
-
-app.get('/api-docs.json', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(swaggerSpec);
-});
-
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
