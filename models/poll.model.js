@@ -1,14 +1,9 @@
 const mongoose = require('mongoose');
 
 const pollSchema = new mongoose.Schema({
-  question: { type: String, required: true },
-  options: [
-    {
-      optionText: { type: String, required: true },
-      votes: { type: Number, default: 0 }
-    }
-  ],
-  createdAt: { type: Date, default: Date.now }
-});
+  title: { type: String, required: true },
+  description: String,
+  status: { type: String, enum: ['active', 'closed'], default: 'active' }
+}, { timestamps: true });
 
 module.exports = mongoose.model('Poll', pollSchema);

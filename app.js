@@ -12,7 +12,6 @@ require('./config/db.config');
 
 const app = express();
 
-// --- Єдине правильне налаштування Swagger ---
 const swaggerOptions = {
   swaggerDefinition: {
     openapi: '3.0.0',
