@@ -10,26 +10,26 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const pollsRouter = require('./routes/polls');
 const votesRouter = require('./routes/votes');
-require('./config/db.config'); 
+require('./config/db.config');
 
 const app = express();
 
 const swaggerOptions = {
-  swaggerDefinition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'API Платформи для голосування',
-      version: '1.0.0',
-      description: 'Документація для лабораторної роботи',
+    swaggerDefinition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'API Платформи для голосування',
+            version: '1.0.0',
+            description: 'Документація для лабораторної роботи',
+        },
+        servers: [
+            {
+                url: 'http://localhost:3000',
+                description: 'Локальний сервер',
+            },
+        ],
     },
-    servers: [
-      {
-        url: 'http://localhost:3000',
-        description: 'Локальний сервер'
-      },
-    ],
-  },
-  apis: ['./routes/*.js'], 
+    apis: ['./routes/*.js'],
 };
 
 const swaggerDocs = swaggerJSDoc(swaggerOptions);

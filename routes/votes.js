@@ -2,11 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 
-const {
-  castVote,
-  checkVoteStatus,
-  getPollResults,
-} = require('../controllers/votes.controller');
+const { castVote, checkVoteStatus, getPollResults } = require('../controllers/votes.controller');
 
 /**
  * @swagger

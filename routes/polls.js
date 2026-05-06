@@ -3,11 +3,11 @@ const express = require('express');
 const router = express.Router();
 
 const {
-  createPoll,
-  getAllPolls,
-  getPollById,
-  addCandidate,
-  closePoll,
+    createPoll,
+    getAllPolls,
+    getPollById,
+    addCandidate,
+    closePoll,
 } = require('../controllers/polls.controller');
 
 /**
