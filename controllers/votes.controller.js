@@ -5,6 +5,7 @@ const Poll = require('../models/poll.model');
 const {
     validateVoteFields,
     validateVoteStatusQuery,
+    validateDeleteVoteFields,
     validateCandidateBelongsToPoll,
     validatePollIsActive,
 } = require('../helpers/vote.helpers');
@@ -45,6 +46,7 @@ const castVote = async (req, res, next) => {
             return res.status(400).json({ error: candidatePollValidation.error });
         }
 
+        // Захист від подвійного голосування
         const existingBallot = await Ballot.findOne({
             voter: voter._id,
             poll: poll._id,
@@ -55,6 +57,7 @@ const castVote = async (req, res, next) => {
             });
         }
 
+        // submittedAt встановлюється автоматично через { timestamps: true } у схемі Ballot
         const ballot = await Ballot.create({
             voter: voter._id,
             poll: poll._id,
@@ -124,7 +127,6 @@ const checkVoteStatus = async (req, res, next) => {
             votedFor: {
                 candidateName: ballot.candidate.name,
                 party: ballot.candidate.party || '—',
-                // submitted_at exposed only to the voter themselves
                 submittedAt: ballot.createdAt,
             },
         });
@@ -175,8 +177,68 @@ const getPollResults = async (req, res, next) => {
     }
 };
 
+const deleteVote = async (req, res, next) => {
+    try {
+        const { voterId, pollId } = req.body;
+
+        const fieldsValidation = validateDeleteVoteFields(voterId, pollId);
+        if (!fieldsValidation.valid) {
+            return res.status(400).json({ error: fieldsValidation.error });
+        }
+
+        const voter = await Voter.findOne({ voterId: voterId.trim() });
+        if (!voter) {
+            return res.status(404).json({ error: 'Виборця не знайдено.' });
+        }
+
+        const poll = await Poll.findById(pollId);
+        if (!poll) {
+            return res.status(404).json({ error: 'Опитування не знайдено.' });
+        }
+
+        const pollActiveValidation = validatePollIsActive(poll);
+        if (!pollActiveValidation.valid) {
+            return res.status(400).json({
+                error: `Неможливо скасувати голос: опитування "${poll.title}" вже завершено.`,
+            });
+        }
+
+        const ballot = await Ballot.findOne({
+            voter: voter._id,
+            poll: poll._id,
+        });
+
+        if (!ballot) {
+            return res.status(404).json({
+                error: `Виборець "${voter.fullName}" не голосував у цьому опитуванні.`,
+            });
+        }
+
+        // Зменшуємо лічильник голосів кандидата перед видаленням бюлетеня
+        await Candidate.findByIdAndUpdate(ballot.candidate, {
+            $inc: { votesCount: -1 },
+        });
+
+        await Ballot.findByIdAndDelete(ballot._id);
+
+        return res.status(200).json({
+            message: `Голос виборця "${voter.fullName}" в опитуванні "${poll.title}" успішно скасовано.`,
+            cancelled: {
+                pollId: poll._id,
+                voterId: voter.voterId,
+            },
+        });
+    } catch (error) {
+        if (error.name === 'CastError') {
+            return res.status(400).json({ error: 'Невалідний формат ID.' });
+        }
+        next(error);
+    }
+};
+
 module.exports = {
     castVote,
     checkVoteStatus,
     getPollResults,
+    deleteVote,
 };
