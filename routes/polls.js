@@ -8,13 +8,14 @@ const {
     getPollById,
     addCandidate,
     closePoll,
+    deletePoll,
 } = require('../controllers/polls.controller');
 
 /**
  * @swagger
  * tags:
  *   name: Polls
- *   description: Управління опитуваннями
+ *   description: Управління опитуваннями (вибори різних рівнів)
  */
 
 /**
@@ -23,6 +24,17 @@ const {
  *   post:
  *     summary: Створити нове опитування
  *     tags: [Polls]
+ *     description: |
+ *       Створює нове виборче опитування з обов'язковим типом (category).
+ *
+ *       **Доступні категорії:**
+ *       | category    | Опис                                      |
+ *       |-------------|-------------------------------------------|
+ *       | president   | Вибори Президента України                 |
+ *       | minister    | Вибори Міністра (уточнити у полі title)   |
+ *       | mayor       | Вибори Мера міста (уточнити у полі title) |
+ *       | parliament  | Парламентські вибори                      |
+ *       | other       | Інше голосування                          |
  *     requestBody:
  *       required: true
  *       content:
@@ -31,15 +43,20 @@ const {
  *             type: object
  *             required:
  *               - title
+ *               - category
  *             properties:
  *               title:
  *                 type: string
  *                 minLength: 5
  *                 maxLength: 200
- *                 example: "Вибори студентської ради 2025"
+ *                 example: "Вибори Президента України 2014"
+ *               category:
+ *                 type: string
+ *                 enum: [president, minister, mayor, parliament, other]
+ *                 example: "president"
  *               description:
  *                 type: string
- *                 example: "Голосування за голову студентської ради"
+ *                 example: "Позачергові вибори Президента України, травень 2014"
  *               candidates:
  *                 type: array
  *                 description: "Необов'язково. Якщо передано — мінімум 2 кандидати."
@@ -50,15 +67,15 @@ const {
  *                   properties:
  *                     name:
  *                       type: string
- *                       example: "Іван Іваненко"
+ *                       example: "Петро Порошенко"
  *                     party:
  *                       type: string
- *                       example: "Незалежний"
+ *                       example: "УДАР"
  *     responses:
  *       201:
  *         description: Опитування успішно створено
  *       400:
- *         description: Помилка валідації (відсутні поля, мало кандидатів, дублікат імені)
+ *         description: Помилка валідації (відсутні поля, невірна категорія, мало кандидатів)
  *       409:
  *         description: Опитування з такою назвою вже існує
  *       500:
@@ -72,18 +89,31 @@ router.post('/', createPoll);
  *   get:
  *     summary: Отримати список усіх опитувань
  *     tags: [Polls]
+ *     description: |
+ *       Повертає всі опитування. Можна фільтрувати за статусом та/або категорією.
+ *
+ *       **Приклади запитів:**
+ *       - Всі активні президентські вибори: `?status=active&category=president`
+ *       - Всі вибори мерів: `?category=mayor`
+ *       - Всі завершені: `?status=closed`
  *     parameters:
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *           enum: [active, closed]
- *         description: "Фільтр за статусом. Без параметра — повертає всі."
+ *         description: "Фільтр за статусом опитування."
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *           enum: [president, minister, mayor, parliament, other]
+ *         description: "Фільтр за типом виборів."
  *     responses:
  *       200:
- *         description: Масив опитувань (сортування від найновішого)
+ *         description: Масив опитувань (від найновішого)
  *       400:
- *         description: Невалідне значення параметра status
+ *         description: Невалідне значення параметра status або category
  */
 router.get('/', getAllPolls);
 
@@ -134,10 +164,10 @@ router.get('/:pollId', getPollById);
  *             properties:
  *               name:
  *                 type: string
- *                 example: "Марія Ковальчук"
+ *                 example: "Юлія Тимошенко"
  *               party:
  *                 type: string
- *                 example: "Партія прогресу"
+ *                 example: "Батьківщина"
  *     responses:
  *       201:
  *         description: Кандидата успішно додано
@@ -146,7 +176,7 @@ router.get('/:pollId', getPollById);
  *       404:
  *         description: Опитування не знайдено
  *       409:
- *         description: Кандидат з таким іменем вже зареєстрований у цьому опитуванні
+ *         description: Кандидат з таким іменем вже зареєстрований
  */
 router.post('/:pollId/candidates', addCandidate);
 
@@ -154,7 +184,7 @@ router.post('/:pollId/candidates', addCandidate);
  * @swagger
  * /polls/{pollId}/close:
  *   patch:
- *     summary: Закрити опитування (завершити голосування)
+ *     summary: Закрити опитування
  *     tags: [Polls]
  *     parameters:
  *       - in: path
@@ -172,5 +202,50 @@ router.post('/:pollId/candidates', addCandidate);
  *         description: Опитування не знайдено
  */
 router.patch('/:pollId/close', closePoll);
+
+/**
+ * @swagger
+ * /polls/{pollId}:
+ *   delete:
+ *     summary: Видалити опитування (каскадне видалення)
+ *     tags: [Polls]
+ *     description: |
+ *       Видаляє опитування разом із усіма пов'язаними даними:
+ *       кандидатами та бюлетенями (каскадне видалення).
+ *
+ *       **Бізнес-правило:** видалення активного опитування заборонено.
+ *       Спочатку закрийте його через `PATCH /polls/:pollId/close`.
+ *     parameters:
+ *       - in: path
+ *         name: pollId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: MongoDB ObjectId опитування
+ *     responses:
+ *       200:
+ *         description: Опитування та всі пов'язані дані успішно видалено
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Опитування "Вибори Президента України 2014" та всі пов'язані дані успішно видалено.'
+ *                 deleted:
+ *                   type: object
+ *                   properties:
+ *                     pollId:
+ *                       type: string
+ *                     candidatesRemoved:
+ *                       type: number
+ *                       description: Кількість видалених кандидатів
+ *       400:
+ *         description: Неможливо видалити активне опитування або невалідний формат ID
+ *       404:
+ *         description: Опитування не знайдено
+ */
+router.delete('/:pollId', deletePoll);
 
 module.exports = router;
