@@ -1,26 +1,26 @@
 const Poll = require('../models/poll.model');
 const Candidate = require('../models/candidate.model');
+const {
+    validatePollTitle,
+    validatePollCategory,
+    validateCandidatesList,
+    validateCandidateName,
+    validateStatusFilter,
+    validateCategoryFilter,
+} = require('../helpers/poll.helpers');
 
 const createPoll = async (req, res, next) => {
     try {
-        const { title, description, candidates } = req.body;
+        const { title, category, description, candidates } = req.body;
 
-        if (!title || title.trim() === '') {
-            return res.status(400).json({
-                error: 'Поле "title" є обов\'язковим і не може бути порожнім.',
-            });
+        const titleValidation = validatePollTitle(title);
+        if (!titleValidation.valid) {
+            return res.status(400).json({ error: titleValidation.error });
         }
 
-        if (title.trim().length < 5) {
-            return res.status(400).json({
-                error: 'Назва опитування повинна містити щонайменше 5 символів.',
-            });
-        }
-
-        if (title.trim().length > 200) {
-            return res.status(400).json({
-                error: 'Назва опитування не може перевищувати 200 символів.',
-            });
+        const categoryValidation = validatePollCategory(category);
+        if (!categoryValidation.valid) {
+            return res.status(400).json({ error: categoryValidation.error });
         }
 
         const existing = await Poll.findOne({ title: title.trim() });
@@ -31,42 +31,15 @@ const createPoll = async (req, res, next) => {
         }
 
         if (candidates !== undefined) {
-            if (!Array.isArray(candidates)) {
-                return res.status(400).json({
-                    error: 'Поле "candidates" має бути масивом об\'єктів.',
-                });
-            }
-
-            if (candidates.length < 2) {
-                return res.status(400).json({
-                    error: 'Опитування повинно містити щонайменше 2 кандидати.',
-                });
-            }
-
-            if (candidates.length > 50) {
-                return res.status(400).json({
-                    error: 'Кількість кандидатів не може перевищувати 50.',
-                });
-            }
-
-            for (let i = 0; i < candidates.length; i++) {
-                if (!candidates[i].name || candidates[i].name.trim() === '') {
-                    return res.status(400).json({
-                        error: `Кандидат #${i + 1}: поле "name" є обов'язковим.`,
-                    });
-                }
-            }
-
-            const names = candidates.map(c => c.name.trim().toLowerCase());
-            if (new Set(names).size !== names.length) {
-                return res.status(400).json({
-                    error: 'Список кандидатів містить повторювані імена.',
-                });
+            const candidatesValidation = validateCandidatesList(candidates);
+            if (!candidatesValidation.valid) {
+                return res.status(400).json({ error: candidatesValidation.error });
             }
         }
 
         const poll = await Poll.create({
             title: title.trim(),
+            category,
             description: description ? description.trim() : undefined,
             status: 'active',
         });
@@ -74,7 +47,7 @@ const createPoll = async (req, res, next) => {
         let createdCandidates = [];
 
         if (candidates && candidates.length > 0) {
-            const candidatesData = candidates.map(c => ({
+            const candidatesData = candidates.map((c) => ({
                 name: c.name.trim(),
                 party: c.party ? c.party.trim() : undefined,
                 poll: poll._id,
@@ -95,16 +68,24 @@ const createPoll = async (req, res, next) => {
 
 const getAllPolls = async (req, res, next) => {
     try {
-        const { status } = req.query;
+        const { status, category } = req.query;
 
         const filter = {};
+
         if (status) {
-            if (!['active', 'closed'].includes(status)) {
-                return res.status(400).json({
-                    error: 'Параметр "status" може бути лише "active" або "closed".',
-                });
+            const statusValidation = validateStatusFilter(status);
+            if (!statusValidation.valid) {
+                return res.status(400).json({ error: statusValidation.error });
             }
             filter.status = status;
+        }
+
+        if (category) {
+            const categoryValidation = validateCategoryFilter(category);
+            if (!categoryValidation.valid) {
+                return res.status(400).json({ error: categoryValidation.error });
+            }
+            filter.category = category;
         }
 
         const polls = await Poll.find(filter).sort({ createdAt: -1 });
@@ -139,8 +120,9 @@ const addCandidate = async (req, res, next) => {
         const { pollId } = req.params;
         const { name, party } = req.body;
 
-        if (!name || name.trim() === '') {
-            return res.status(400).json({ error: 'Поле "name" є обов\'язковим.' });
+        const nameValidation = validateCandidateName(name);
+        if (!nameValidation.valid) {
+            return res.status(400).json({ error: nameValidation.error });
         }
 
         const poll = await Poll.findById(pollId);
