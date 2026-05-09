@@ -1,5 +1,6 @@
 const Poll = require('../models/poll.model');
 const Candidate = require('../models/candidate.model');
+const Ballot = require('../models/ballot.model');
 const {
     validatePollTitle,
     validatePollCategory,
@@ -194,10 +195,46 @@ const closePoll = async (req, res, next) => {
     }
 };
 
+const deletePoll = async (req, res, next) => {
+    try {
+        const poll = await Poll.findById(req.params.pollId);
+
+        if (!poll) {
+            return res.status(404).json({ error: 'Опитування не знайдено.' });
+        }
+
+        if (poll.status === 'active') {
+            return res.status(400).json({
+                error: 'Неможливо видалити активне опитування. Спочатку закрийте його через PATCH /polls/:pollId/close.',
+            });
+        }
+
+        // Каскадне видалення: бюлетені → кандидати → опитування
+        const candidateIds = await Candidate.find({ poll: poll._id }).distinct('_id');
+        await Ballot.deleteMany({ poll: poll._id });
+        await Candidate.deleteMany({ poll: poll._id });
+        await Poll.findByIdAndDelete(poll._id);
+
+        return res.status(200).json({
+            message: `Опитування "${poll.title}" та всі пов'язані дані успішно видалено.`,
+            deleted: {
+                pollId: poll._id,
+                candidatesRemoved: candidateIds.length,
+            },
+        });
+    } catch (error) {
+        if (error.name === 'CastError') {
+            return res.status(400).json({ error: 'Невалідний формат ID опитування.' });
+        }
+        next(error);
+    }
+};
+
 module.exports = {
     createPoll,
     getAllPolls,
     getPollById,
     addCandidate,
     closePoll,
+    deletePoll,
 };
