@@ -2,7 +2,12 @@ const express = require('express');
 
 const router = express.Router();
 
-const { castVote, checkVoteStatus, getPollResults } = require('../controllers/votes.controller');
+const {
+    castVote,
+    checkVoteStatus,
+    getPollResults,
+    deleteVote,
+} = require('../controllers/votes.controller');
 
 /**
  * @swagger
@@ -20,12 +25,12 @@ const { castVote, checkVoteStatus, getPollResults } = require('../controllers/vo
  *     description: |
  *       Подає голос виборця за обраного кандидата.
  *
- *       **Бізнес-правила:**
+ *       Бізнес-правила:
  *       - Виборець (voterId) має бути зареєстрований у системі.
- *       - Опитування (pollId) має бути активним (`status: active`).
+ *       - Опитування (pollId) має бути активним (status: active).
  *       - Кандидат (candidateId) має належати до вказаного опитування.
- *       - Один виборець — лише **один голос** в одному опитуванні.
- *         Повторне голосування повертає **HTTP 409** з відповідним повідомленням.
+ *       - Один виборець — лише один голос в одному опитуванні.
+ *         Повторне голосування повертає HTTP 409.
  *     requestBody:
  *       required: true
  *       content:
@@ -39,15 +44,12 @@ const { castVote, checkVoteStatus, getPollResults } = require('../controllers/vo
  *             properties:
  *               voterId:
  *                 type: string
- *                 description: "Рядковий ID виборця (напр. STUD-001)"
  *                 example: "STUD-001"
  *               pollId:
  *                 type: string
- *                 description: MongoDB ObjectId опитування
  *                 example: "665f1a2b3c4d5e6f7a8b9c0d"
  *               candidateId:
  *                 type: string
- *                 description: MongoDB ObjectId кандидата
  *                 example: "665f1a2b3c4d5e6f7a8b9c0e"
  *     responses:
  *       201:
@@ -59,7 +61,7 @@ const { castVote, checkVoteStatus, getPollResults } = require('../controllers/vo
  *               properties:
  *                 message:
  *                   type: string
- *                   example: 'Ваш голос за "Іван Іваненко" успішно зараховано!'
+ *                   example: "Ваш голос успішно зараховано!"
  *                 ballot:
  *                   type: object
  *                   properties:
@@ -69,23 +71,76 @@ const { castVote, checkVoteStatus, getPollResults } = require('../controllers/vo
  *                       type: string
  *                     candidate:
  *                       type: string
- *                     votedAt:
+ *                     submittedAt:
  *                       type: string
  *                       format: date-time
  *       400:
- *         description: |
- *           Помилка запиту. Можливі причини:
- *           - відсутні обов'язкові поля
- *           - опитування закрите
- *           - кандидат не належить до цього опитування
+ *         description: Відсутні поля, закрите опитування або кандидат не в цьому опитуванні
  *       404:
  *         description: Виборця, опитування або кандидата не знайдено
  *       409:
- *         description: "Повторне голосування заборонено — виборець вже голосував у цьому опитуванні"
+ *         description: Повторне голосування заборонено
  *       500:
  *         description: Внутрішня помилка сервера
  */
 router.post('/', castVote);
+
+/**
+ * @swagger
+ * /votes:
+ *   delete:
+ *     summary: Скасувати голос виборця
+ *     tags: [Votes]
+ *     description: |
+ *       Скасовує голос виборця в активному опитуванні.
+ *
+ *       Бізнес-правила:
+ *       - Скасувати голос можна лише в активному опитуванні.
+ *       - Якщо опитування вже закрито — скасування заборонено (HTTP 400).
+ *       - Якщо виборець не голосував — повертається HTTP 404.
+ *       - Лічильник голосів кандидата зменшується автоматично.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - voterId
+ *               - pollId
+ *             properties:
+ *               voterId:
+ *                 type: string
+ *                 description: "Рядковий ID виборця"
+ *                 example: "STUD-001"
+ *               pollId:
+ *                 type: string
+ *                 description: "MongoDB ObjectId опитування"
+ *                 example: "665f1a2b3c4d5e6f7a8b9c0d"
+ *     responses:
+ *       200:
+ *         description: Голос успішно скасовано
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Голос виборця успішно скасовано."
+ *                 cancelled:
+ *                   type: object
+ *                   properties:
+ *                     pollId:
+ *                       type: string
+ *                     voterId:
+ *                       type: string
+ *       400:
+ *         description: Опитування вже закрито або відсутні обов'язкові поля
+ *       404:
+ *         description: Виборця, опитування або бюлетеня не знайдено
+ */
+router.delete('/', deleteVote);
 
 /**
  * @swagger
@@ -100,14 +155,12 @@ router.post('/', castVote);
  *         required: true
  *         schema:
  *           type: string
- *         description: "Рядковий ID виборця (напр. STUD-001)"
  *         example: "STUD-001"
  *       - in: query
  *         name: pollId
  *         required: true
  *         schema:
  *           type: string
- *         description: MongoDB ObjectId опитування
  *     responses:
  *       200:
  *         description: Статус голосування
@@ -128,11 +181,11 @@ router.post('/', castVote);
  *                       type: string
  *                     party:
  *                       type: string
- *                     votedAt:
+ *                     submittedAt:
  *                       type: string
  *                       format: date-time
  *       400:
- *         description: "Відсутні обов'язкові query-параметри"
+ *         description: Відсутні обов'язкові query-параметри
  *       404:
  *         description: Виборця або опитування не знайдено
  */
@@ -144,17 +197,19 @@ router.get('/check', checkVoteStatus);
  *   get:
  *     summary: Переглянути результати опитування
  *     tags: [Votes]
- *     description: "Повертає рейтинг кандидатів: кількість голосів та відсоток. Сортування від найбільшої кількості."
+ *     description: |
+ *       Повертає агреговані результати голосування.
+ *       Таємність голосування: лише кількість голосів та відсоток,
+ *       без персональних даних виборців.
  *     parameters:
  *       - in: path
  *         name: pollId
  *         required: true
  *         schema:
  *           type: string
- *         description: MongoDB ObjectId опитування
  *     responses:
  *       200:
- *         description: Результати голосування
+ *         description: Результати голосування (без персональних даних виборців)
  *         content:
  *           application/json:
  *             schema:
@@ -169,6 +224,9 @@ router.get('/check', checkVoteStatus);
  *                       type: string
  *                     status:
  *                       type: string
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
  *                 totalVotes:
  *                   type: number
  *                 results:
