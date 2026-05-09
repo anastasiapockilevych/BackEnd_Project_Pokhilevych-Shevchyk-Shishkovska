@@ -93,9 +93,9 @@ router.post('/', createPoll);
  *       Повертає всі опитування. Можна фільтрувати за статусом та/або категорією.
  *
  *       **Приклади запитів:**
- *       - Всі активні президентські вибори: `?status=active&category=president`
- *       - Всі вибори мерів: `?category=mayor`
- *       - Всі завершені: `?status=closed`
+ *       - Всі активні президентські вибори: ?status=active&category=president
+ *       - Всі вибори мерів: ?category=mayor
+ *       - Всі завершені: ?status=closed
  *     parameters:
  *       - in: query
  *         name: status
@@ -132,7 +132,7 @@ router.get('/', getAllPolls);
  *         description: MongoDB ObjectId опитування
  *     responses:
  *       200:
- *         description: Об'єкт poll та масив candidates
+ *         description: Обєкт poll та масив candidates
  *       400:
  *         description: Невалідний формат ID
  *       404:
@@ -213,8 +213,8 @@ router.patch('/:pollId/close', closePoll);
  *       Видаляє опитування разом із усіма пов'язаними даними:
  *       кандидатами та бюлетенями (каскадне видалення).
  *
- *       **Бізнес-правило:** видалення активного опитування заборонено.
- *       Спочатку закрийте його через `PATCH /polls/:pollId/close`.
+ *       Бізнес-правило - видалення активного опитування заборонено.
+ *       Спочатку закрийте його через PATCH /polls/:pollId/close.
  *     parameters:
  *       - in: path
  *         name: pollId
@@ -232,7 +232,7 @@ router.patch('/:pollId/close', closePoll);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: 'Опитування "Вибори Президента України 2014" та всі пов'язані дані успішно видалено.'
+ *                   example: "Опитування успішно видалено."
  *                 deleted:
  *                   type: object
  *                   properties:
