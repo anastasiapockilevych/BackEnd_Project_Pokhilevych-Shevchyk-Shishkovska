@@ -2,15 +2,20 @@ const Ballot = require('../models/ballot.model');
 const Candidate = require('../models/candidate.model');
 const Voter = require('../models/voter.model');
 const Poll = require('../models/poll.model');
+const {
+    validateVoteFields,
+    validateVoteStatusQuery,
+    validateCandidateBelongsToPoll,
+    validatePollIsActive,
+} = require('../helpers/vote.helpers');
 
 const castVote = async (req, res, next) => {
     try {
         const { voterId, pollId, candidateId } = req.body;
 
-        if (!voterId || !pollId || !candidateId) {
-            return res.status(400).json({
-                error: 'Необхідно вказати всі поля: "voterId", "pollId", "candidateId".',
-            });
+        const fieldsValidation = validateVoteFields(voterId, pollId, candidateId);
+        if (!fieldsValidation.valid) {
+            return res.status(400).json({ error: fieldsValidation.error });
         }
 
         const voter = await Voter.findOne({ voterId: voterId.trim() });
@@ -25,10 +30,9 @@ const castVote = async (req, res, next) => {
             return res.status(404).json({ error: 'Опитування не знайдено.' });
         }
 
-        if (poll.status === 'closed') {
-            return res.status(400).json({
-                error: `Опитування "${poll.title}" вже завершено. Голосування не приймається.`,
-            });
+        const pollActiveValidation = validatePollIsActive(poll);
+        if (!pollActiveValidation.valid) {
+            return res.status(400).json({ error: pollActiveValidation.error });
         }
 
         const candidate = await Candidate.findById(candidateId);
@@ -36,17 +40,15 @@ const castVote = async (req, res, next) => {
             return res.status(404).json({ error: 'Кандидата не знайдено.' });
         }
 
-        if (candidate.poll.toString() !== poll._id.toString()) {
-            return res.status(400).json({
-                error: `Кандидат "${candidate.name}" не бере участі у цьому опитуванні.`,
-            });
+        const candidatePollValidation = validateCandidateBelongsToPoll(candidate, poll);
+        if (!candidatePollValidation.valid) {
+            return res.status(400).json({ error: candidatePollValidation.error });
         }
 
         const existingBallot = await Ballot.findOne({
             voter: voter._id,
             poll: poll._id,
         });
-
         if (existingBallot) {
             return res.status(409).json({
                 error: `Ви вже проголосували в опитуванні "${poll.title}". Повторне голосування заборонено.`,
@@ -69,7 +71,7 @@ const castVote = async (req, res, next) => {
                 id: ballot._id,
                 poll: poll.title,
                 candidate: candidate.name,
-                votedAt: ballot.votedAt,
+                submittedAt: ballot.createdAt,
             },
         });
     } catch (error) {
@@ -89,10 +91,9 @@ const checkVoteStatus = async (req, res, next) => {
     try {
         const { voterId, pollId } = req.query;
 
-        if (!voterId || !pollId) {
-            return res.status(400).json({
-                error: 'Необхідно вказати query-параметри "voterId" та "pollId".',
-            });
+        const queryValidation = validateVoteStatusQuery(voterId, pollId);
+        if (!queryValidation.valid) {
+            return res.status(400).json({ error: queryValidation.error });
         }
 
         const voter = await Voter.findOne({ voterId: voterId.trim() });
@@ -123,7 +124,8 @@ const checkVoteStatus = async (req, res, next) => {
             votedFor: {
                 candidateName: ballot.candidate.name,
                 party: ballot.candidate.party || '—',
-                votedAt: ballot.votedAt,
+                // submitted_at exposed only to the voter themselves
+                submittedAt: ballot.createdAt,
             },
         });
     } catch (error) {
@@ -147,7 +149,7 @@ const getPollResults = async (req, res, next) => {
 
         const totalVotes = candidates.reduce((sum, c) => sum + c.votesCount, 0);
 
-        const results = candidates.map(c => ({
+        const results = candidates.map((c) => ({
             name: c.name,
             party: c.party || '—',
             votes: c.votesCount,
@@ -160,6 +162,7 @@ const getPollResults = async (req, res, next) => {
                 id: poll._id,
                 title: poll.title,
                 status: poll.status,
+                createdAt: poll.createdAt,
             },
             totalVotes,
             results,
