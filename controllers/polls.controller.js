@@ -48,7 +48,7 @@ const createPoll = async (req, res, next) => {
         let createdCandidates = [];
 
         if (candidates && candidates.length > 0) {
-            const candidatesData = candidates.map((c) => ({
+            const candidatesData = candidates.map(c => ({
                 name: c.name.trim(),
                 party: c.party ? c.party.trim() : undefined,
                 poll: poll._id,

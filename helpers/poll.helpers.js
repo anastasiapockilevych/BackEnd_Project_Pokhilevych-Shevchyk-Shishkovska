@@ -8,7 +8,7 @@
  * @param {string} title
  * @returns {{ valid: boolean, error?: string }}
  */
-const validatePollTitle = (title) => {
+const validatePollTitle = title => {
     if (!title || title.trim() === '') {
         return { valid: false, error: 'Поле "title" є обов\'язковим і не може бути порожнім.' };
     }
@@ -26,7 +26,7 @@ const validatePollTitle = (title) => {
  * @param {Array} candidates
  * @returns {{ valid: boolean, error?: string }}
  */
-const validateCandidatesList = (candidates) => {
+const validateCandidatesList = candidates => {
     if (!Array.isArray(candidates)) {
         return { valid: false, error: 'Поле "candidates" має бути масивом об\'єктів.' };
     }
@@ -41,7 +41,7 @@ const validateCandidatesList = (candidates) => {
             return { valid: false, error: `Кандидат #${i + 1}: поле "name" є обов'язковим.` };
         }
     }
-    const names = candidates.map((c) => c.name.trim().toLowerCase());
+    const names = candidates.map(c => c.name.trim().toLowerCase());
     if (new Set(names).size !== names.length) {
         return { valid: false, error: 'Список кандидатів містить повторювані імена.' };
     }
@@ -53,7 +53,7 @@ const validateCandidatesList = (candidates) => {
  * @param {string} name
  * @returns {{ valid: boolean, error?: string }}
  */
-const validateCandidateName = (name) => {
+const validateCandidateName = name => {
     if (!name || name.trim() === '') {
         return { valid: false, error: 'Поле "name" є обов\'язковим.' };
     }
@@ -65,7 +65,7 @@ const validateCandidateName = (name) => {
  * @param {string} status
  * @returns {{ valid: boolean, error?: string }}
  */
-const validateStatusFilter = (status) => {
+const validateStatusFilter = status => {
     if (!['active', 'closed'].includes(status)) {
         return {
             valid: false,

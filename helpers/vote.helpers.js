@@ -73,7 +73,7 @@ const validateCandidateBelongsToPoll = (candidate, poll) => {
  * @param {Object} poll - Mongoose Poll document
  * @returns {{ valid: boolean, error?: string }}
  */
-const validatePollIsActive = (poll) => {
+const validatePollIsActive = poll => {
     if (poll.status === 'closed') {
         return {
             valid: false,

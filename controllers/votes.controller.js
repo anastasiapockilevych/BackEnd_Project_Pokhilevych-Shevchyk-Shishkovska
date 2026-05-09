@@ -151,7 +151,7 @@ const getPollResults = async (req, res, next) => {
 
         const totalVotes = candidates.reduce((sum, c) => sum + c.votesCount, 0);
 
-        const results = candidates.map((c) => ({
+        const results = candidates.map(c => ({
             name: c.name,
             party: c.party || '—',
             votes: c.votesCount,
