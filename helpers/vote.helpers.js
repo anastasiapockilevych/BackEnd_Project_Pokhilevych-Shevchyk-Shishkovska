@@ -37,6 +37,22 @@ const validateVoteStatusQuery = (voterId, pollId) => {
 };
 
 /**
+ * Validates that required body fields for vote deletion are present.
+ * @param {string} voterId
+ * @param {string} pollId
+ * @returns {{ valid: boolean, error?: string }}
+ */
+const validateDeleteVoteFields = (voterId, pollId) => {
+    if (!voterId || !pollId) {
+        return {
+            valid: false,
+            error: 'Необхідно вказати поля "voterId" та "pollId".',
+        };
+    }
+    return { valid: true };
+};
+
+/**
  * Checks that a candidate belongs to the given poll.
  * @param {Object} candidate - Mongoose Candidate document
  * @param {Object} poll - Mongoose Poll document
@@ -70,6 +86,7 @@ const validatePollIsActive = (poll) => {
 module.exports = {
     validateVoteFields,
     validateVoteStatusQuery,
+    validateDeleteVoteFields,
     validateCandidateBelongsToPoll,
     validatePollIsActive,
 };
