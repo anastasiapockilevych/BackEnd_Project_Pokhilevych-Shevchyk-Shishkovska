@@ -8,33 +8,33 @@ const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
-require('./config/db.config'); 
+const pollsRouter = require('./routes/polls');
+const votesRouter = require('./routes/votes');
+require('./config/db.config');
 
 const app = express();
 
 const swaggerOptions = {
-  swaggerDefinition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'API Платформи для голосування',
-      version: '1.0.0',
-      description: 'Документація для лабораторної роботи',
+    swaggerDefinition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'API Платформи для голосування',
+            version: '1.0.0',
+            description: 'Документація для лабораторної роботи',
+        },
+        servers: [
+            {
+                url: 'http://localhost:3000',
+                description: 'Локальний сервер',
+            },
+        ],
     },
-    servers: [
-      {
-        url: 'http://localhost:3000',
-        description: 'Локальний сервер'
-      },
-    ],
-  },
-  apis: ['./routes/*.js'], 
+    apis: ['./routes/*.js'],
 };
 
 const swaggerDocs = swaggerJSDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-// ---------------------------------------------
 
-// view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
@@ -46,20 +46,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/polls', pollsRouter);
+app.use('/votes', votesRouter);
 
-// catch 404 and forward to error handler
 app.use((req, res, next) => {
     next(createError(404));
 });
 
-// error handler
-// eslint-disable-next-line no-unused-vars
-app.use((err, req, res, next) => {
-    // set locals, only providing error in development
+app.use((err, req, res, _next) => {
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-    // render the error page
     res.status(err.status || 500);
     res.render('error');
 });
