@@ -10,6 +10,7 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const pollsRouter = require('./routes/polls');
 const votesRouter = require('./routes/votes');
+const analyticsRouter = require('./routes/analytics');
 require('./config/db.config');
 
 const app = express();
@@ -48,6 +49,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/polls', pollsRouter);
 app.use('/votes', votesRouter);
+app.use('/analytics', analyticsRouter);
 
 app.use((req, res, next) => {
     next(createError(404));
