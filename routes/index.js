@@ -120,4 +120,27 @@ router.get('/seed', async (req, res) => {
     }
 });
 
+/**
+ * Маршрут для реєстрації нового виборця
+ * Саме цей шлях викликає ваш frontend.js через fetch('/users/new')
+ */
+router.post('/users/new', async (req, res) => {
+    try {
+        const { fullName, voterId } = req.body;
+
+        // Перевіряємо, чи такий виборець вже існує
+        const existingVoter = await Voter.findOne({ voterId });
+        if (existingVoter) {
+            return res.status(400).json({ error: 'Виборець з таким ID вже зареєстрований' });
+        }
+
+        const newVoter = new Voter({ fullName, voterId });
+        await newVoter.save();
+
+        res.status(201).json({ message: 'Виборця успішно створено', voter: newVoter });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 module.exports = router; 
