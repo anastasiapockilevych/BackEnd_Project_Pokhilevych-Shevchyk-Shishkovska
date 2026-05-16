@@ -53,8 +53,7 @@ const getPollAnalytics = async (req, res, next) => {
 
         // Переможець або лідер
         const leader = breakdown.length > 0 ? breakdown[0] : null;
-        const hasWinner =
-            poll.status === 'closed' && leader && leader.votes > 0;
+        const hasWinner = poll.status === 'closed' && leader && leader.votes > 0;
 
         // Динаміка голосування: групуємо бюлетені по годинах
         const ballots = await Ballot.find({ poll: poll._id })
@@ -76,9 +75,23 @@ const getPollAnalytics = async (req, res, next) => {
                 totalRegisteredVoters: totalVoters,
                 turnoutPercent: `${turnoutPercent}%`,
                 ...(hasWinner
-                    ? { winner: { name: leader.name, party: leader.party, votes: leader.votes, percentage: leader.percentage } }
+                    ? {
+                          winner: {
+                              name: leader.name,
+                              party: leader.party,
+                              votes: leader.votes,
+                              percentage: leader.percentage,
+                          },
+                      }
                     : leader && leader.votes > 0
-                    ? { currentLeader: { name: leader.name, party: leader.party, votes: leader.votes, percentage: leader.percentage } }
+                    ? {
+                          currentLeader: {
+                              name: leader.name,
+                              party: leader.party,
+                              votes: leader.votes,
+                              percentage: leader.percentage,
+                          },
+                      }
                     : { winner: null }),
             },
             breakdown,
@@ -128,7 +141,7 @@ const getOverviewAnalytics = async (req, res, next) => {
                     status: poll ? poll.status : '—',
                     voteCount: item.voteCount,
                 };
-            })
+            }),
         );
 
         // Статистика категорій (якщо поле category є в моделі)
@@ -176,9 +189,7 @@ function buildHourlyTimeline(ballots) {
         hourMap.set(key, (hourMap.get(key) || 0) + 1);
     }
 
-    const sorted = Array.from(hourMap.entries()).sort(([a], [b]) =>
-        new Date(a) - new Date(b)
-    );
+    const sorted = Array.from(hourMap.entries()).sort(([a], [b]) => new Date(a) - new Date(b));
 
     let cumulative = 0;
     return sorted.map(([hour, votes]) => {

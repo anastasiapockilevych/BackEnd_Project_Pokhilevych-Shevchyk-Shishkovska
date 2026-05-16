@@ -50,6 +50,12 @@ const buildMocks = (body = {}, params = {}, query = {}) => {
     return { req, res, next };
 };
 
+// ─── Глобальні хуки для Jest (щоб уникнути помилки A worker process has failed) ─
+afterAll(async () => {
+    // На всякий випадок чистимо моки
+    jest.clearAllMocks();
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. castVote
 // ─────────────────────────────────────────────────────────────────────────────
@@ -80,7 +86,7 @@ describe('castVote', () => {
 
         expect(res.status).toHaveBeenCalledWith(404);
         expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: expect.stringContaining('не знайдено') })
+            expect.objectContaining({ error: expect.stringContaining('не знайдено') }),
         );
     });
 
@@ -104,7 +110,9 @@ describe('castVote', () => {
     it('400 — опитування закрите', async () => {
         validateVoteFields.mockReturnValue({ valid: true });
         Voter.findOne = jest.fn().mockResolvedValue({ _id: fakeId(), voterId: 'STUD-001' });
-        Poll.findById = jest.fn().mockResolvedValue({ _id: fakeId(), status: 'closed', title: 'X' });
+        Poll.findById = jest
+            .fn()
+            .mockResolvedValue({ _id: fakeId(), status: 'closed', title: 'X' });
         validatePollIsActive.mockReturnValue({ valid: false, error: 'Опитування закрите' });
 
         const { req, res, next } = buildMocks({
@@ -122,7 +130,9 @@ describe('castVote', () => {
     it('404 — кандидат не знайдений', async () => {
         validateVoteFields.mockReturnValue({ valid: true });
         Voter.findOne = jest.fn().mockResolvedValue({ _id: fakeId(), voterId: 'STUD-001' });
-        Poll.findById = jest.fn().mockResolvedValue({ _id: fakeId(), status: 'active', title: 'X' });
+        Poll.findById = jest
+            .fn()
+            .mockResolvedValue({ _id: fakeId(), status: 'active', title: 'X' });
         validatePollIsActive.mockReturnValue({ valid: true });
         Candidate.findById = jest.fn().mockResolvedValue(null);
 
@@ -184,7 +194,7 @@ describe('castVote', () => {
 
         expect(res.status).toHaveBeenCalledWith(409);
         expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: expect.stringContaining('вже проголосували') })
+            expect.objectContaining({ error: expect.stringContaining('вже проголосували') }),
         );
     });
 
@@ -216,20 +226,23 @@ describe('castVote', () => {
             expect.objectContaining({
                 message: expect.stringContaining('успішно'),
                 ballot: expect.objectContaining({ poll: 'Election' }),
-            })
+            }),
         );
-        expect(Candidate.findByIdAndUpdate).toHaveBeenCalledWith(
-            mockCandidate._id,
-            { $inc: { votesCount: 1 } }
-        );
+        expect(Candidate.findByIdAndUpdate).toHaveBeenCalledWith(mockCandidate._id, {
+            $inc: { votesCount: 1 },
+        });
     });
 
     it('409 — унікальний індекс MongoDB (code 11000)', async () => {
         validateVoteFields.mockReturnValue({ valid: true });
         Voter.findOne = jest.fn().mockResolvedValue({ _id: fakeId() });
-        Poll.findById = jest.fn().mockResolvedValue({ _id: fakeId(), status: 'active', title: 'X' });
+        Poll.findById = jest
+            .fn()
+            .mockResolvedValue({ _id: fakeId(), status: 'active', title: 'X' });
         validatePollIsActive.mockReturnValue({ valid: true });
-        Candidate.findById = jest.fn().mockResolvedValue({ _id: fakeId(), name: 'A', poll: fakeId() });
+        Candidate.findById = jest
+            .fn()
+            .mockResolvedValue({ _id: fakeId(), name: 'A', poll: fakeId() });
         validateCandidateBelongsToPoll.mockReturnValue({ valid: true });
         Ballot.findOne = jest.fn().mockResolvedValue(null);
         const dbError = new Error('Duplicate key');
@@ -246,13 +259,15 @@ describe('castVote', () => {
 
         expect(res.status).toHaveBeenCalledWith(409);
         expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: expect.stringContaining('Повторне') })
+            expect.objectContaining({ error: expect.stringContaining('Повторне') }),
         );
     });
 
     it('400 — CastError', async () => {
         validateVoteFields.mockReturnValue({ valid: true });
-        Voter.findOne = jest.fn().mockRejectedValue({ name: 'CastError' });
+        const castErr = new Error();
+        castErr.name = 'CastError';
+        Voter.findOne = jest.fn().mockRejectedValue(castErr);
 
         const { req, res, next } = buildMocks({
             voterId: 'STUD-001',
@@ -265,6 +280,22 @@ describe('castVote', () => {
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({ error: 'Невалідний формат одного з ID.' });
     });
+
+    // ДОДАНИЙ ТЕСТ: перевірка на іншу (не CastError) помилку
+    it('next(error) — інший виняток', async () => {
+        validateVoteFields.mockReturnValue({ valid: true });
+        Voter.findOne = jest.fn().mockRejectedValue(new Error('Зовсім інша помилка'));
+
+        const { req, res, next } = buildMocks({
+            voterId: 'STUD-001',
+            pollId: fakeId(),
+            candidateId: fakeId(),
+        });
+
+        await castVote(req, res, next);
+
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
+    });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -274,7 +305,10 @@ describe('checkVoteStatus', () => {
     beforeEach(() => jest.clearAllMocks());
 
     it('400 — відсутні query-параметри', async () => {
-        validateVoteStatusQuery.mockReturnValue({ valid: false, error: 'Потрібні voterId та pollId' });
+        validateVoteStatusQuery.mockReturnValue({
+            valid: false,
+            error: 'Потрібні voterId та pollId',
+        });
         const { req, res, next } = buildMocks({}, {}, {});
 
         await checkVoteStatus(req, res, next);
@@ -322,9 +356,7 @@ describe('checkVoteStatus', () => {
         await checkVoteStatus(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ hasVoted: false })
-        );
+        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ hasVoted: false }));
     });
 
     it('200 hasVoted=true — виборець вже проголосував', async () => {
@@ -349,7 +381,7 @@ describe('checkVoteStatus', () => {
             expect.objectContaining({
                 hasVoted: true,
                 votedFor: expect.objectContaining({ candidateName: 'Кандидат А' }),
-            })
+            }),
         );
     });
 
@@ -375,7 +407,9 @@ describe('checkVoteStatus', () => {
 
     it('400 — CastError', async () => {
         validateVoteStatusQuery.mockReturnValue({ valid: true });
-        Voter.findOne = jest.fn().mockRejectedValue({ name: 'CastError' });
+        const castErr = new Error();
+        castErr.name = 'CastError';
+        Voter.findOne = jest.fn().mockRejectedValue(castErr);
 
         const { req, res, next } = buildMocks({}, {}, { voterId: 'X', pollId: 'bad' });
 
@@ -383,6 +417,18 @@ describe('checkVoteStatus', () => {
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({ error: 'Невалідний формат ID.' });
+    });
+
+    // ДОДАНИЙ ТЕСТ: перевірка на іншу (не CastError) помилку
+    it('next(error) — інший виняток', async () => {
+        validateVoteStatusQuery.mockReturnValue({ valid: true });
+        Voter.findOne = jest.fn().mockRejectedValue(new Error('Unexpected db error'));
+
+        const { req, res, next } = buildMocks({}, {}, { voterId: 'X', pollId: fakeId() });
+
+        await checkVoteStatus(req, res, next);
+
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
     });
 });
 
@@ -403,7 +449,12 @@ describe('getPollResults', () => {
     });
 
     it('200 — результати з голосами', async () => {
-        const mockPoll = { _id: fakeId(), title: 'Election', status: 'closed', createdAt: new Date() };
+        const mockPoll = {
+            _id: fakeId(),
+            title: 'Election',
+            status: 'closed',
+            createdAt: new Date(),
+        };
         Poll.findById = jest.fn().mockResolvedValue(mockPoll);
         const mockCandidates = [
             { name: 'A', party: 'PA', votesCount: 60 },
@@ -427,7 +478,12 @@ describe('getPollResults', () => {
     });
 
     it('200 — результати без голосів (0 голосів)', async () => {
-        const mockPoll = { _id: fakeId(), title: 'New Poll', status: 'active', createdAt: new Date() };
+        const mockPoll = {
+            _id: fakeId(),
+            title: 'New Poll',
+            status: 'active',
+            createdAt: new Date(),
+        };
         Poll.findById = jest.fn().mockResolvedValue(mockPoll);
         const mockCandidates = [
             { name: 'A', party: null, votesCount: 0 },
@@ -446,14 +502,14 @@ describe('getPollResults', () => {
         expect(res.status).toHaveBeenCalledWith(200);
         const jsonArg = res.json.mock.calls[0][0];
         expect(jsonArg.totalVotes).toBe(0);
-        // Перевіряємо що party без значення повертається як '—'
         expect(jsonArg.results[0].party).toBe('—');
-        // Відсоток має бути '0.00%' при 0 голосах
         expect(jsonArg.results[0].percentage).toBe('0.00%');
     });
 
     it('400 — CastError', async () => {
-        Poll.findById = jest.fn().mockRejectedValue({ name: 'CastError' });
+        const castErr = new Error();
+        castErr.name = 'CastError';
+        Poll.findById = jest.fn().mockRejectedValue(castErr);
         const { req, res, next } = buildMocks({}, { pollId: 'bad' });
 
         await getPollResults(req, res, next);
@@ -479,7 +535,10 @@ describe('deleteVote', () => {
     beforeEach(() => jest.clearAllMocks());
 
     it('400 — відсутні обов\'язкові поля', async () => {
-        validateDeleteVoteFields.mockReturnValue({ valid: false, error: 'Потрібні voterId та pollId' });
+        validateDeleteVoteFields.mockReturnValue({
+            valid: false,
+            error: 'Потрібні voterId та pollId',
+        });
         const { req, res, next } = buildMocks({ voterId: '', pollId: '' });
 
         await deleteVote(req, res, next);
@@ -526,7 +585,7 @@ describe('deleteVote', () => {
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: expect.stringContaining('завершено') })
+            expect.objectContaining({ error: expect.stringContaining('завершено') }),
         );
     });
 
@@ -545,7 +604,7 @@ describe('deleteVote', () => {
 
         expect(res.status).toHaveBeenCalledWith(404);
         expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: expect.stringContaining('не голосував') })
+            expect.objectContaining({ error: expect.stringContaining('не голосував') }),
         );
     });
 
@@ -565,23 +624,24 @@ describe('deleteVote', () => {
 
         await deleteVote(req, res, next);
 
-        expect(Candidate.findByIdAndUpdate).toHaveBeenCalledWith(
-            mockBallot.candidate,
-            { $inc: { votesCount: -1 } }
-        );
+        expect(Candidate.findByIdAndUpdate).toHaveBeenCalledWith(mockBallot.candidate, {
+            $inc: { votesCount: -1 },
+        });
         expect(Ballot.findByIdAndDelete).toHaveBeenCalledWith(mockBallot._id);
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith(
             expect.objectContaining({
                 message: expect.stringContaining('скасовано'),
                 cancelled: expect.objectContaining({ voterId: 'STUD-001' }),
-            })
+            }),
         );
     });
 
     it('400 — CastError', async () => {
         validateDeleteVoteFields.mockReturnValue({ valid: true });
-        Voter.findOne = jest.fn().mockRejectedValue({ name: 'CastError' });
+        const castErr = new Error();
+        castErr.name = 'CastError';
+        Voter.findOne = jest.fn().mockRejectedValue(castErr);
 
         const { req, res, next } = buildMocks({ voterId: 'X', pollId: 'bad' });
 

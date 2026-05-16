@@ -101,10 +101,7 @@ describe('validateCandidatesList', () => {
     });
 
     it('invalid — дублікати імен (case insensitive)', () => {
-        const result = validateCandidatesList([
-            { name: 'John Doe' },
-            { name: 'john doe' },
-        ]);
+        const result = validateCandidatesList([{ name: 'John Doe' }, { name: 'john doe' }]);
         expect(result.valid).toBe(false);
         expect(result.error).toMatch(/повторювані/);
     });

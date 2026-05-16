@@ -17,14 +17,16 @@ function showNotification(message, type = 'success') {
     // Видаляємо через 4 секунди
     const timer = setTimeout(() => closeToast(toast), 4000);
     // Закриття по кліку
-    toast.onclick = () => { clearTimeout(timer); closeToast(toast); };
+    toast.onclick = () => {
+        clearTimeout(timer);
+        closeToast(toast);
+    };
 }
 
 function closeToast(toast) {
     toast.classList.add('fade-out');
     toast.addEventListener('animationend', () => toast.remove());
 }
-
 
 // --- Маршрутизатор (перемикач сторінок) ---
 function loadPage(page, data = null) {
@@ -84,8 +86,12 @@ async function renderPollsList() {
                             <h3>${poll.title}</h3>
                         </div>
                         <div>
-                            <button class="btn" onclick="loadPage('view', '${poll._id || poll.id}')">Відкрити</button>
-                            <button class="btn btn-danger" onclick="deletePoll('${poll._id || poll.id}')">Видалити</button>
+                            <button class="btn" onclick="loadPage('view', '${
+                                poll._id || poll.id
+                            }')">Відкрити</button>
+                            <button class="btn btn-danger" onclick="deletePoll('${
+                                poll._id || poll.id
+                            }')">Видалити</button>
                         </div>
                     </div>
                 `;
@@ -110,13 +116,17 @@ async function renderPollDetails(pollId) {
             data = { totalVotes: 0, results: [] };
         } else {
             const errData = await response.json();
-            contentDiv.innerHTML = `<p>Помилка: ${errData.error || 'Щось пішло не так'}</p><button class="btn" style="margin-top: 15px;" onclick="loadPage('polls')">Назад</button>`;
+            contentDiv.innerHTML = `<p>Помилка: ${
+                errData.error || 'Щось пішло не так'
+            }</p><button class="btn" style="margin-top: 15px;" onclick="loadPage('polls')">Назад</button>`;
             return;
         }
 
         let html = `
             <h2>Результати опитування</h2>
-            <p>Всього голосів: <strong style="font-size: 1.2em; color: #4F46E5;">${data.totalVotes || 0}</strong></p>
+            <p>Всього голосів: <strong style="font-size: 1.2em; color: #4F46E5;">${
+                data.totalVotes || 0
+            }</strong></p>
 
             <div style="background: #FFFFFF; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #E5E7EB;">
                 <label for="voterIdInput" style="font-weight: 600; display: block; margin-bottom: 10px; color: #374151;">Ваш ID студента (обов'язково для голосування):</label>
@@ -129,12 +139,18 @@ async function renderPollDetails(pollId) {
         if (data.results && data.results.length > 0) {
             data.results.forEach(cand => {
                 const rawPercent = cand.percentage ? cand.percentage.replace('%', '') : '0';
-                
+
                 html += `
                     <li class="candidate-item">
                         <div class="candidate-info">
-                            <span style="font-size: 1.1em;"><strong>${cand.name}</strong> <span style="color: gray; font-size: 0.9em;">(${cand.party || '—'})</span></span>
-                            <button class="btn" onclick="castVote('${pollId}', '${cand.id || cand.candidate_id || cand._id || cand.name}')">Голосувати</button>
+                            <span style="font-size: 1.1em;"><strong>${
+                                cand.name
+                            }</strong> <span style="color: gray; font-size: 0.9em;">(${
+                    cand.party || '—'
+                })</span></span>
+                            <button class="btn" onclick="castVote('${pollId}', '${
+                    cand.id || cand.candidate_id || cand._id || cand.name
+                }')">Голосувати</button>
                         </div>
                         <div style="margin-top: 5px;">
                             <div style="display: flex; justify-content: space-between; font-size: 0.9em; font-weight: bold; margin-bottom: 5px;">
@@ -149,10 +165,12 @@ async function renderPollDetails(pollId) {
                 `;
             });
         } else {
-            html += '<p style="text-align: center; color: gray; padding: 20px;">Кандидатів поки немає (або результати приховані).</p>';
+            html +=
+                '<p style="text-align: center; color: gray; padding: 20px;">Кандидатів поки немає (або результати приховані).</p>';
         }
 
-        html += `</ul><button class="btn" style="margin-top: 20px;" onclick="loadPage('polls')">⬅ Назад до списку</button>`;
+        html +=
+            '</ul><button class="btn" style="margin-top: 20px;" onclick="loadPage(\'polls\')">⬅ Назад до списку</button>';
         contentDiv.innerHTML = html;
 
         setTimeout(() => {
@@ -160,9 +178,9 @@ async function renderPollDetails(pollId) {
                 bar.style.width = bar.getAttribute('data-width');
             });
         }, 50);
-        
     } catch (error) {
-        contentDiv.innerHTML = `<p>Не вдалося зв'язатися з сервером.</p><button class="btn" style="margin-top: 15px;" onclick="loadPage('polls')">Назад</button>`;
+        contentDiv.innerHTML =
+            '<p>Не вдалося зв\'язатися з сервером.</p><button class="btn" style="margin-top: 15px;" onclick="loadPage(\'polls\')">Назад</button>';
     }
 }
 
@@ -209,9 +227,9 @@ async function createPoll(event) {
         const res = await fetch('/polls', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, expires_at: expiresAt })
+            body: JSON.stringify({ title, expires_at: expiresAt }),
         });
-        
+
         if (res.ok) {
             showNotification('Опитування успішно створено! 🎉', 'success');
             loadPage('polls');
@@ -225,19 +243,19 @@ async function createPoll(event) {
 
 async function deletePoll(pollId) {
     if (!confirm('Точно видалити це опитування?')) return;
-    
+
     try {
-        const res = await fetch(`/polls/${pollId}`, { 
+        const res = await fetch(`/polls/${pollId}`, {
             method: 'DELETE',
-            headers: { 'x-admin-key': 'secret123' } 
+            headers: { 'x-admin-key': 'secret123' },
         });
-        
+
         if (res.ok) {
             showNotification('Опитування успішно видалено! 🗑️', 'success');
             loadPage('polls');
         } else {
             const data = await res.json();
-            showNotification('Помилка: ' + (data.error || 'Не вдалося видалити'), 'error');
+            showNotification(`Помилка: ${data.error || 'Не вдалося видалити'}`, 'error');
         }
     } catch (err) {
         showNotification('Помилка видалення', 'error');
@@ -250,7 +268,7 @@ async function castVote(pollId, candidateId) {
 
     if (!voterId) {
         showNotification('Будь ласка, введіть свій ID студента у поле вище!', 'error');
-        voterIdInput.style.border = '2px solid #EF4444'; 
+        voterIdInput.style.border = '2px solid #EF4444';
         voterIdInput.focus();
         return;
     }
@@ -259,16 +277,16 @@ async function castVote(pollId, candidateId) {
         const res = await fetch('/votes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pollId, candidateId, voterId })
+            body: JSON.stringify({ pollId, candidateId, voterId }),
         });
-        
+
         const result = await res.json();
-        
+
         if (res.ok) {
             showNotification('Ваш голос успішно враховано! 🗳️', 'success');
-            loadPage('view', pollId); 
+            loadPage('view', pollId);
         } else {
-            showNotification('Помилка: ' + (result.error || result.message), 'error');
+            showNotification(`Помилка: ${result.error || result.message}`, 'error');
         }
     } catch (err) {
         showNotification('Помилка сервера при голосуванні', 'error');
@@ -284,16 +302,19 @@ async function registerVoter(event) {
         const res = await fetch('/users/new', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fullName, voterId }) 
+            body: JSON.stringify({ fullName, voterId }),
         });
-        
+
         const data = await res.json();
-        
+
         if (res.ok || res.status === 201) {
             showNotification(`Виборця зареєстровано! Вітаємо, ${fullName} 🤝`, 'success');
-            loadPage('polls'); 
+            loadPage('polls');
         } else {
-            showNotification('Помилка реєстрації: ' + (data.error || data.message || 'Не вдалося створити'), 'error');
+            showNotification(
+                `Помилка реєстрації: ${data.error || data.message || 'Не вдалося створити'}`,
+                'error',
+            );
         }
     } catch (err) {
         showNotification('Помилка сервера при реєстрації', 'error');
