@@ -51,7 +51,7 @@ describe('requireAdmin', () => {
 
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: expect.stringContaining('X-Admin-Key') })
+            expect.objectContaining({ error: expect.stringContaining('X-Admin-Key') }),
         );
         expect(next).not.toHaveBeenCalled();
     });
@@ -64,7 +64,7 @@ describe('requireAdmin', () => {
 
         expect(res.status).toHaveBeenCalledWith(403);
         expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: expect.stringContaining('Недійсний') })
+            expect.objectContaining({ error: expect.stringContaining('Недійсний') }),
         );
         expect(next).not.toHaveBeenCalled();
     });
@@ -118,7 +118,7 @@ describe('requireActivePoll', () => {
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: expect.stringContaining('завершено') })
+            expect.objectContaining({ error: expect.stringContaining('завершено') }),
         );
         expect(next).not.toHaveBeenCalled();
     });

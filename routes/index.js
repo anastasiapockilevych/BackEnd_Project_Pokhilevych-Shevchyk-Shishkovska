@@ -42,9 +42,10 @@ router.get('/seed', async (req, res) => {
             },
             {
                 title: 'Позачергові вибори до Верховної Ради України 2014',
-                description: 'Голосування за політичні партії (багатомандатний загальнодержавний округ)',
+                description:
+                    'Голосування за політичні партії (багатомандатний загальнодержавний округ)',
                 status: 'active',
-            }
+            },
         ];
 
         // Зберігаємо опитування і отримуємо їхні об'єкти з _id
@@ -54,32 +55,107 @@ router.get('/seed', async (req, res) => {
         const candidatesData = [
             // --- КАНДИДАТИ В ПРЕЗИДЕНТИ 2014 ---
             { name: 'Петро Порошенко', party: 'БПП', poll: presidentialPoll._id, votesCount: 0 },
-            { name: 'Юлія Тимошенко', party: 'Батьківщина', poll: presidentialPoll._id, votesCount: 0 },
-            { name: 'Олег Ляшко', party: 'Радикальна партія', poll: presidentialPoll._id, votesCount: 0 },
-            { name: 'Анатолій Гриценко', party: 'Громадянська позиція', poll: presidentialPoll._id, votesCount: 0 },
-            { name: 'Сергій Тігіпко', party: 'Сильна Україна', poll: presidentialPoll._id, votesCount: 0 },
-            { name: 'Михайло Добкін', party: 'Партія Регіонів', poll: presidentialPoll._id, votesCount: 0 },
-            { name: 'Вадим Рабінович', party: 'Самовисуванець', poll: presidentialPoll._id, votesCount: 0 },
-            { name: 'Ольга Богомолець', party: 'Самовисуванець', poll: presidentialPoll._id, votesCount: 0 },
+            {
+                name: 'Юлія Тимошенко',
+                party: 'Батьківщина',
+                poll: presidentialPoll._id,
+                votesCount: 0,
+            },
+            {
+                name: 'Олег Ляшко',
+                party: 'Радикальна партія',
+                poll: presidentialPoll._id,
+                votesCount: 0,
+            },
+            {
+                name: 'Анатолій Гриценко',
+                party: 'Громадянська позиція',
+                poll: presidentialPoll._id,
+                votesCount: 0,
+            },
+            {
+                name: 'Сергій Тігіпко',
+                party: 'Сильна Україна',
+                poll: presidentialPoll._id,
+                votesCount: 0,
+            },
+            {
+                name: 'Михайло Добкін',
+                party: 'Партія Регіонів',
+                poll: presidentialPoll._id,
+                votesCount: 0,
+            },
+            {
+                name: 'Вадим Рабінович',
+                party: 'Самовисуванець',
+                poll: presidentialPoll._id,
+                votesCount: 0,
+            },
+            {
+                name: 'Ольга Богомолець',
+                party: 'Самовисуванець',
+                poll: presidentialPoll._id,
+                votesCount: 0,
+            },
             { name: 'Петро Симоненко', party: 'КПУ', poll: presidentialPoll._id, votesCount: 0 },
             { name: 'Олег Тягнибок', party: 'Свобода', poll: presidentialPoll._id, votesCount: 0 },
-            { name: 'Дмитро Ярош', party: 'Правий Сектор', poll: presidentialPoll._id, votesCount: 0 },
+            {
+                name: 'Дмитро Ярош',
+                party: 'Правий Сектор',
+                poll: presidentialPoll._id,
+                votesCount: 0,
+            },
 
             // --- КАНДИДАТИ В МЕРИ ЧЕРНІВЦІВ 2014 ---
             { name: 'Олексій Каспрук', party: 'Батьківщина', poll: mayoralPoll._id, votesCount: 0 },
-            { name: 'Віталій Михайлішин', party: 'Самовисуванець', poll: mayoralPoll._id, votesCount: 0 },
+            {
+                name: 'Віталій Михайлішин',
+                party: 'Самовисуванець',
+                poll: mayoralPoll._id,
+                votesCount: 0,
+            },
             { name: 'В\'ячеслав Кишлярук', party: 'УДАР', poll: mayoralPoll._id, votesCount: 0 },
             { name: 'Віталій Ткачук', party: 'Свобода', poll: mayoralPoll._id, votesCount: 0 },
             { name: 'Ілля Хочь', party: 'Самовисуванець', poll: mayoralPoll._id, votesCount: 0 },
 
             // --- ПАРТІЇ ДО ВЕРХОВНОЇ РАДИ 2014 (тільки партії) ---
-            { name: 'Народний фронт', party: 'Народний фронт', poll: parliamentaryPoll._id, votesCount: 0 },
-            { name: 'Блок Петра Порошенка', party: 'Блок Петра Порошенка', poll: parliamentaryPoll._id, votesCount: 0 },
-            { name: 'Об\'єднання Самопоміч', party: 'Самопоміч', poll: parliamentaryPoll._id, votesCount: 0 },
-            { name: 'Опозиційний блок', party: 'Опозиційний блок', poll: parliamentaryPoll._id, votesCount: 0 },
-            { name: 'Радикальна партія Олега Ляшка', party: 'Радикальна партія', poll: parliamentaryPoll._id, votesCount: 0 },
-            { name: 'ВО Батьківщина', party: 'Батьківщина', poll: parliamentaryPoll._id, votesCount: 0 },
-            { name: 'ВО Свобода', party: 'Свобода', poll: parliamentaryPoll._id, votesCount: 0 }
+            {
+                name: 'Народний фронт',
+                party: 'Народний фронт',
+                poll: parliamentaryPoll._id,
+                votesCount: 0,
+            },
+            {
+                name: 'Блок Петра Порошенка',
+                party: 'Блок Петра Порошенка',
+                poll: parliamentaryPoll._id,
+                votesCount: 0,
+            },
+            {
+                name: 'Об\'єднання Самопоміч',
+                party: 'Самопоміч',
+                poll: parliamentaryPoll._id,
+                votesCount: 0,
+            },
+            {
+                name: 'Опозиційний блок',
+                party: 'Опозиційний блок',
+                poll: parliamentaryPoll._id,
+                votesCount: 0,
+            },
+            {
+                name: 'Радикальна партія Олега Ляшка',
+                party: 'Радикальна партія',
+                poll: parliamentaryPoll._id,
+                votesCount: 0,
+            },
+            {
+                name: 'ВО Батьківщина',
+                party: 'Батьківщина',
+                poll: parliamentaryPoll._id,
+                votesCount: 0,
+            },
+            { name: 'ВО Свобода', party: 'Свобода', poll: parliamentaryPoll._id, votesCount: 0 },
         ];
 
         await Candidate.insertMany(candidatesData);
@@ -120,4 +196,27 @@ router.get('/seed', async (req, res) => {
     }
 });
 
-module.exports = router; 
+/**
+ * Маршрут для реєстрації нового виборця
+ * Саме цей шлях викликає ваш frontend.js через fetch('/users/new')
+ */
+router.post('/users/new', async (req, res) => {
+    try {
+        const { fullName, voterId } = req.body;
+
+        // Перевіряємо, чи такий виборець вже існує
+        const existingVoter = await Voter.findOne({ voterId });
+        if (existingVoter) {
+            return res.status(400).json({ error: 'Виборець з таким ID вже зареєстрований' });
+        }
+
+        const newVoter = new Voter({ fullName, voterId });
+        await newVoter.save();
+
+        res.status(201).json({ message: 'Виборця успішно створено', voter: newVoter });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+module.exports = router;
