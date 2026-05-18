@@ -1,4 +1,4 @@
-# Pochilevych, Shevchuk and Shishkovska BackEnd Project
+# Pochilevych, Shevchuk and Shyshkovska BackEnd Project
 
 ## Initial Machine Setup
 
@@ -9,7 +9,8 @@
 1. **Install** `npm install`
 2. **Configure connection** [config file]((https://github.com/anastasiapockilevych/BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska/blob/main/.env))
 2. **Run the app** `npm run start`
-
+- http://localhost:3000/
+- 
 ## Documentation
 Swagger docs can be found at:
 - http://localhost:3000/api-docs/
