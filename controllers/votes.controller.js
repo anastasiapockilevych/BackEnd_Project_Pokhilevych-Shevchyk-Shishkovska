@@ -86,7 +86,7 @@ const castVote = async (req, res, next) => {
         if (error.name === 'CastError') {
             return res.status(400).json({ error: 'Невалідний формат одного з ID.' });
         }
-        next(error);
+        return next(error);
     }
 };
 
@@ -134,7 +134,7 @@ const checkVoteStatus = async (req, res, next) => {
         if (error.name === 'CastError') {
             return res.status(400).json({ error: 'Невалідний формат ID.' });
         }
-        next(error);
+        return next(error);
     }
 };
 
@@ -174,7 +174,7 @@ const getPollResults = async (req, res, next) => {
         if (error.name === 'CastError') {
             return res.status(400).json({ error: 'Невалідний формат ID опитування.' });
         }
-        next(error);
+        return next(error);
     }
 };
 
@@ -233,7 +233,7 @@ const deleteVote = async (req, res, next) => {
         if (error.name === 'CastError') {
             return res.status(400).json({ error: 'Невалідний формат ID.' });
         }
-        next(error);
+        return next(error);
     }
 };
 

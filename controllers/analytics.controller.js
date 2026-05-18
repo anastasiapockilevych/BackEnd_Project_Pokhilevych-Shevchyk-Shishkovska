@@ -14,6 +14,33 @@ const Ballot = require('../models/ballot.model');
 const Voter = require('../models/voter.model');
 
 /**
+ * Допоміжна функція: будує погодинну динаміку голосування.
+ * @param {Array} ballots — масив { createdAt } відсортований по зростанню
+ * @returns {Array} [{ hour: '2024-05-10T14:00', votes: 5, cumulative: 12 }, ...]
+ */
+function buildHourlyTimeline(ballots) {
+    if (ballots.length === 0) return [];
+
+    const hourMap = new Map();
+
+    ballots.forEach(ballot => {
+        const d = new Date(ballot.createdAt);
+        // Обнуляємо хвилини/секунди — групуємо по годині
+        d.setMinutes(0, 0, 0);
+        const key = d.toISOString();
+        hourMap.set(key, (hourMap.get(key) || 0) + 1);
+    });
+
+    const sorted = Array.from(hourMap.entries()).sort(([a], [b]) => new Date(a) - new Date(b));
+
+    let cumulative = 0;
+    return sorted.map(([hour, votes]) => {
+        cumulative += votes;
+        return { hour, votes, cumulative };
+    });
+}
+
+/**
  * GET /analytics/polls/:pollId/summary
  * Повна аналітика конкретного опитування:
  * - переможець / лідер
@@ -55,6 +82,29 @@ const getPollAnalytics = async (req, res, next) => {
         const leader = breakdown.length > 0 ? breakdown[0] : null;
         const hasWinner = poll.status === 'closed' && leader && leader.votes > 0;
 
+        let summaryExtra;
+        if (hasWinner) {
+            summaryExtra = {
+                winner: {
+                    name: leader.name,
+                    party: leader.party,
+                    votes: leader.votes,
+                    percentage: leader.percentage,
+                },
+            };
+        } else if (leader && leader.votes > 0) {
+            summaryExtra = {
+                currentLeader: {
+                    name: leader.name,
+                    party: leader.party,
+                    votes: leader.votes,
+                    percentage: leader.percentage,
+                },
+            };
+        } else {
+            summaryExtra = { winner: null };
+        }
+
         // Динаміка голосування: групуємо бюлетені по годинах
         const ballots = await Ballot.find({ poll: poll._id })
             .select('createdAt')
@@ -74,25 +124,7 @@ const getPollAnalytics = async (req, res, next) => {
                 totalVotes,
                 totalRegisteredVoters: totalVoters,
                 turnoutPercent: `${turnoutPercent}%`,
-                ...(hasWinner
-                    ? {
-                          winner: {
-                              name: leader.name,
-                              party: leader.party,
-                              votes: leader.votes,
-                              percentage: leader.percentage,
-                          },
-                      }
-                    : leader && leader.votes > 0
-                    ? {
-                          currentLeader: {
-                              name: leader.name,
-                              party: leader.party,
-                              votes: leader.votes,
-                              percentage: leader.percentage,
-                          },
-                      }
-                    : { winner: null }),
+                ...summaryExtra,
             },
             breakdown,
             timeline,
@@ -170,33 +202,6 @@ const getOverviewAnalytics = async (req, res, next) => {
         return next(error);
     }
 };
-
-/**
- * Допоміжна функція: будує погодинну динаміку голосування.
- * @param {Array} ballots — масив { createdAt } відсортований по зростанню
- * @returns {Array} [{ hour: '2024-05-10T14:00', votes: 5, cumulative: 12 }, ...]
- */
-function buildHourlyTimeline(ballots) {
-    if (ballots.length === 0) return [];
-
-    const hourMap = new Map();
-
-    for (const ballot of ballots) {
-        const d = new Date(ballot.createdAt);
-        // Обнуляємо хвилини/секунди — групуємо по годині
-        d.setMinutes(0, 0, 0);
-        const key = d.toISOString();
-        hourMap.set(key, (hourMap.get(key) || 0) + 1);
-    }
-
-    const sorted = Array.from(hourMap.entries()).sort(([a], [b]) => new Date(a) - new Date(b));
-
-    let cumulative = 0;
-    return sorted.map(([hour, votes]) => {
-        cumulative += votes;
-        return { hour, votes, cumulative };
-    });
-}
 
 module.exports = {
     getPollAnalytics,
