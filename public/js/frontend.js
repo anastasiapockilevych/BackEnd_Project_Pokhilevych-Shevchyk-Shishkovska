@@ -1,9 +1,15 @@
+/* eslint-env browser */
 const contentDiv = document.getElementById('content');
 
 // --- Система сповіщень (Toast) ---
 const toastContainer = document.createElement('div');
 toastContainer.id = 'toast-container';
 document.body.appendChild(toastContainer);
+
+function closeToast(toast) {
+    toast.classList.add('fade-out');
+    toast.addEventListener('animationend', () => toast.remove());
+}
 
 function showNotification(message, type = 'success') {
     const toast = document.createElement('div');
@@ -21,20 +27,6 @@ function showNotification(message, type = 'success') {
         clearTimeout(timer);
         closeToast(toast);
     };
-}
-
-function closeToast(toast) {
-    toast.classList.add('fade-out');
-    toast.addEventListener('animationend', () => toast.remove());
-}
-
-// --- Маршрутизатор (перемикач сторінок) ---
-function loadPage(page, data = null) {
-    if (page === 'home') renderHome();
-    else if (page === 'polls') renderPollsList();
-    else if (page === 'create') renderCreatePoll();
-    else if (page === 'view') renderPollDetails(data);
-    else if (page === 'register') renderRegister();
 }
 
 // --- 0. Головна сторінка (Landing Page) ---
@@ -175,6 +167,7 @@ async function renderPollDetails(pollId) {
 
         setTimeout(() => {
             document.querySelectorAll('.progress-bar-fill').forEach(bar => {
+                // eslint-disable-next-line no-param-reassign
                 bar.style.width = bar.getAttribute('data-width');
             });
         }, 50);
@@ -216,8 +209,18 @@ function renderRegister() {
     `;
 }
 
+// --- Маршрутизатор (перемикач сторінок) ---
+function loadPage(page, data = null) {
+    if (page === 'home') renderHome();
+    else if (page === 'polls') renderPollsList();
+    else if (page === 'create') renderCreatePoll();
+    else if (page === 'view') renderPollDetails(data);
+    else if (page === 'register') renderRegister();
+}
+
 // --- Функції взаємодії з бекендом ---
 
+// eslint-disable-next-line no-unused-vars
 async function createPoll(event) {
     event.preventDefault();
     const title = document.getElementById('pollTitle').value;
@@ -241,8 +244,9 @@ async function createPoll(event) {
     }
 }
 
+// eslint-disable-next-line no-unused-vars
 async function deletePoll(pollId) {
-    if (!confirm('Точно видалити це опитування?')) return;
+    if (!window.confirm('Точно видалити це опитування?')) return;
 
     try {
         const res = await fetch(`/polls/${pollId}`, {
@@ -262,6 +266,7 @@ async function deletePoll(pollId) {
     }
 }
 
+// eslint-disable-next-line no-unused-vars
 async function castVote(pollId, candidateId) {
     const voterIdInput = document.getElementById('voterIdInput');
     const voterId = voterIdInput ? voterIdInput.value.trim() : '';
@@ -293,6 +298,7 @@ async function castVote(pollId, candidateId) {
     }
 }
 
+// eslint-disable-next-line no-unused-vars
 async function registerVoter(event) {
     event.preventDefault();
     const fullName = document.getElementById('voterName').value;

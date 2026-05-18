@@ -9,7 +9,7 @@ const Voter = require('../models/voter.model');
 const Ballot = require('../models/ballot.model');
 
 /* Головна сторінка */
-router.get('/', function (req, res, next) {
+router.get('/', function (req, res, _next) {
     res.render('index', { title: 'Express Voting Platform' });
 });
 
@@ -114,7 +114,7 @@ router.get('/seed', async (req, res) => {
                 poll: mayoralPoll._id,
                 votesCount: 0,
             },
-            { name: 'В\'ячеслав Кишлярук', party: 'УДАР', poll: mayoralPoll._id, votesCount: 0 },
+            { name: "В'ячеслав Кишлярук", party: 'УДАР', poll: mayoralPoll._id, votesCount: 0 },
             { name: 'Віталій Ткачук', party: 'Свобода', poll: mayoralPoll._id, votesCount: 0 },
             { name: 'Ілля Хочь', party: 'Самовисуванець', poll: mayoralPoll._id, votesCount: 0 },
 
@@ -132,7 +132,7 @@ router.get('/seed', async (req, res) => {
                 votesCount: 0,
             },
             {
-                name: 'Об\'єднання Самопоміч',
+                name: "Об'єднання Самопоміч",
                 party: 'Самопоміч',
                 poll: parliamentaryPoll._id,
                 votesCount: 0,
@@ -213,9 +213,9 @@ router.post('/users/new', async (req, res) => {
         const newVoter = new Voter({ fullName, voterId });
         await newVoter.save();
 
-        res.status(201).json({ message: 'Виборця успішно створено', voter: newVoter });
+        return res.status(201).json({ message: 'Виборця успішно створено', voter: newVoter });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        return res.status(400).json({ error: error.message });
     }
 });
 

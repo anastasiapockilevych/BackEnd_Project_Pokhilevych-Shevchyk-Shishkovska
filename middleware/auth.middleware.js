@@ -12,6 +12,8 @@
 
 require('dotenv').config();
 
+const Poll = require('../models/poll.model');
+
 /**
  * Middleware: доступ лише для адміністраторів.
  * Перевіряє заголовок X-Admin-Key.
@@ -44,11 +46,9 @@ const requireAdmin = (req, res, next) => {
 /**
  * Middleware: перевірка що опитування не завершене перед змінами.
  * Використовується разом з роутами, де req.params.pollId наявний.
- * Потребує Poll model — підключається динамічно щоб уникнути циклічних залежностей.
  */
 const requireActivePoll = async (req, res, next) => {
     try {
-        const Poll = require('../models/poll.model');
         const { pollId } = req.params;
 
         if (!pollId) {

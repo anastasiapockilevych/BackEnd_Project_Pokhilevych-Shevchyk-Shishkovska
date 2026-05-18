@@ -63,7 +63,7 @@ const createPoll = async (req, res, next) => {
             candidates: createdCandidates,
         });
     } catch (error) {
-        next(error);
+        return next(error);
     }
 };
 
@@ -93,7 +93,7 @@ const getAllPolls = async (req, res, next) => {
 
         return res.status(200).json(polls);
     } catch (error) {
-        next(error);
+        return next(error);
     }
 };
 
@@ -112,7 +112,7 @@ const getPollById = async (req, res, next) => {
         if (error.name === 'CastError') {
             return res.status(400).json({ error: 'Невалідний формат ID опитування.' });
         }
-        next(error);
+        return next(error);
     }
 };
 
@@ -164,7 +164,7 @@ const addCandidate = async (req, res, next) => {
         if (error.name === 'CastError') {
             return res.status(400).json({ error: 'Невалідний формат ID.' });
         }
-        next(error);
+        return next(error);
     }
 };
 
@@ -191,7 +191,7 @@ const closePoll = async (req, res, next) => {
         if (error.name === 'CastError') {
             return res.status(400).json({ error: 'Невалідний формат ID опитування.' });
         }
-        next(error);
+        return next(error);
     }
 };
 
@@ -226,7 +226,7 @@ const deletePoll = async (req, res, next) => {
         if (error.name === 'CastError') {
             return res.status(400).json({ error: 'Невалідний формат ID опитування.' });
         }
-        next(error);
+        return next(error);
     }
 };
 

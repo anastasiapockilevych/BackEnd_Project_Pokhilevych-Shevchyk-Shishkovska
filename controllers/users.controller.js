@@ -1,5 +1,3 @@
-const Department = require('../models/department.model');
-
 /**
  * @swagger
  * definitions:
@@ -59,9 +57,6 @@ const users = [
  *         description: Internal server error
  */
 const getUsers = async (req, res) => {
-    // Demo implementation
-    // const departments = await Department.getAll();
-    // console.log(departments);
     res.status(200).json(users);
 };
 
