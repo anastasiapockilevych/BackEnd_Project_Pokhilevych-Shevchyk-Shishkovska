@@ -1,4 +1,4 @@
-# ExpressJsLab4Template
+# Pochilevych, Shevchuk and Shishkovska BackEnd Project
 
 ## Initial Machine Setup
 
@@ -7,7 +7,7 @@
 ## Get Started
 
 1. **Install** `npm install`
-2. **Configure mysql connection** [config file](https://github.com/ol-kyrychenko/ExpressJsLab4Template/blob/main/config/db.config.js)
+2. **Configure connection** [config file]((https://github.com/anastasiapockilevych/BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska/blob/main/.env))
 2. **Run the app** `npm run start`
 
 ## Documentation
