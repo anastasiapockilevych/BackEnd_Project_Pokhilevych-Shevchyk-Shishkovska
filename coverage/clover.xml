@@ -1,58 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1779082006742" clover="3.2.0">
-  <project timestamp="1779082006742" name="All files">
-    <metrics statements="336" coveredstatements="336" conditionals="196" coveredconditionals="196" methods="34" coveredmethods="34" elements="566" coveredelements="566" complexity="0" loc="336" ncloc="336" packages="4" files="10" classes="10"/>
+<coverage generated="1779227425101" clover="3.2.0">
+  <project timestamp="1779227425101" name="All files">
+    <metrics statements="341" coveredstatements="341" conditionals="196" coveredconditionals="196" methods="35" coveredmethods="35" elements="572" coveredelements="572" complexity="0" loc="341" ncloc="341" packages="4" files="10" classes="10"/>
     <package name="controllers">
-      <metrics statements="243" coveredstatements="243" conditionals="139" coveredconditionals="139" methods="22" coveredmethods="22"/>
+      <metrics statements="248" coveredstatements="248" conditionals="139" coveredconditionals="139" methods="23" coveredmethods="23"/>
       <file name="analytics.controller.js" path="C:\Users\admin\Desktop\c file\labs(backend)\API Voiting Platform\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\controllers\analytics.controller.js">
-        <metrics statements="47" coveredstatements="47" conditionals="35" coveredconditionals="35" methods="9" coveredmethods="9"/>
+        <metrics statements="52" coveredstatements="52" conditionals="35" coveredconditionals="35" methods="10" coveredmethods="10"/>
         <line num="11" count="1" type="stmt"/>
         <line num="12" count="1" type="stmt"/>
         <line num="13" count="1" type="stmt"/>
         <line num="14" count="1" type="stmt"/>
-        <line num="24" count="1" type="stmt"/>
-        <line num="25" count="8" type="stmt"/>
-        <line num="26" count="8" type="stmt"/>
-        <line num="28" count="6" type="cond" truecount="2" falsecount="0"/>
-        <line num="29" count="1" type="stmt"/>
-        <line num="33" count="5" type="stmt"/>
-        <line num="37" count="6" type="stmt"/>
-        <line num="38" count="5" type="stmt"/>
-        <line num="42" count="5" type="cond" truecount="2" falsecount="0"/>
-        <line num="45" count="6" type="stmt"/>
-        <line num="55" count="5" type="cond" truecount="2" falsecount="0"/>
-        <line num="56" count="5" type="cond" truecount="3" falsecount="0"/>
-        <line num="59" count="5" type="stmt"/>
-        <line num="63" count="5" type="stmt"/>
+        <line num="22" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="24" count="2" type="stmt"/>
+        <line num="26" count="2" type="stmt"/>
+        <line num="27" count="4" type="stmt"/>
+        <line num="29" count="4" type="stmt"/>
+        <line num="30" count="4" type="stmt"/>
+        <line num="31" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="34" count="2" type="stmt"/>
+        <line num="36" count="2" type="stmt"/>
+        <line num="37" count="2" type="stmt"/>
+        <line num="38" count="3" type="stmt"/>
+        <line num="39" count="3" type="stmt"/>
+        <line num="51" count="1" type="stmt"/>
+        <line num="52" count="8" type="stmt"/>
+        <line num="53" count="8" type="stmt"/>
+        <line num="55" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="56" count="1" type="stmt"/>
+        <line num="60" count="5" type="stmt"/>
+        <line num="64" count="6" type="stmt"/>
         <line num="65" count="5" type="stmt"/>
-        <line num="101" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="102" count="1" type="stmt"/>
-        <line num="104" count="1" type="stmt"/>
-        <line num="115" count="1" type="stmt"/>
-        <line num="116" count="4" type="stmt"/>
-        <line num="117" count="4" type="stmt"/>
-        <line num="125" count="3" type="stmt"/>
-        <line num="128" count="3" type="stmt"/>
-        <line num="135" count="3" type="stmt"/>
-        <line num="137" count="2" type="stmt"/>
-        <line num="138" count="2" type="stmt"/>
-        <line num="148" count="3" type="stmt"/>
-        <line num="153" count="3" type="stmt"/>
-        <line num="164" count="2" type="stmt"/>
-        <line num="170" count="1" type="stmt"/>
-        <line num="180" count="5" type="cond" truecount="2" falsecount="0"/>
-        <line num="182" count="2" type="stmt"/>
-        <line num="184" count="2" type="stmt"/>
-        <line num="185" count="4" type="stmt"/>
-        <line num="187" count="4" type="stmt"/>
-        <line num="188" count="4" type="stmt"/>
-        <line num="189" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="192" count="2" type="stmt"/>
-        <line num="194" count="2" type="stmt"/>
-        <line num="195" count="2" type="stmt"/>
-        <line num="196" count="3" type="stmt"/>
-        <line num="197" count="3" type="stmt"/>
-        <line num="201" count="1" type="stmt"/>
+        <line num="69" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="72" count="6" type="stmt"/>
+        <line num="82" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="83" count="5" type="cond" truecount="3" falsecount="0"/>
+        <line num="86" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="87" count="1" type="stmt"/>
+        <line num="95" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="96" count="2" type="stmt"/>
+        <line num="105" count="2" type="stmt"/>
+        <line num="109" count="5" type="stmt"/>
+        <line num="113" count="5" type="stmt"/>
+        <line num="115" count="5" type="stmt"/>
+        <line num="133" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="134" count="1" type="stmt"/>
+        <line num="136" count="1" type="stmt"/>
+        <line num="147" count="1" type="stmt"/>
+        <line num="148" count="4" type="stmt"/>
+        <line num="149" count="4" type="stmt"/>
+        <line num="157" count="3" type="stmt"/>
+        <line num="160" count="3" type="stmt"/>
+        <line num="167" count="3" type="stmt"/>
+        <line num="169" count="2" type="stmt"/>
+        <line num="170" count="2" type="stmt"/>
+        <line num="180" count="3" type="stmt"/>
+        <line num="185" count="3" type="stmt"/>
+        <line num="196" count="2" type="stmt"/>
+        <line num="202" count="1" type="stmt"/>
+        <line num="206" count="1" type="stmt"/>
       </file>
       <file name="polls.controller.js" path="C:\Users\admin\Desktop\c file\labs(backend)\API Voiting Platform\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\controllers\polls.controller.js">
         <metrics statements="103" coveredstatements="103" conditionals="54" coveredconditionals="54" methods="7" coveredmethods="7"/>
@@ -323,18 +328,18 @@
       <file name="auth.middleware.js" path="C:\Users\admin\Desktop\c file\labs(backend)\API Voiting Platform\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\middleware\auth.middleware.js">
         <metrics statements="28" coveredstatements="28" conditionals="14" coveredconditionals="14" methods="2" coveredmethods="2"/>
         <line num="13" count="1" type="stmt"/>
-        <line num="19" count="1" type="stmt"/>
-        <line num="20" count="4" type="stmt"/>
-        <line num="23" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="24" count="1" type="stmt"/>
-        <line num="27" count="3" type="stmt"/>
-        <line num="29" count="3" type="cond" truecount="2" falsecount="0"/>
-        <line num="30" count="1" type="stmt"/>
-        <line num="35" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="36" count="1" type="stmt"/>
-        <line num="41" count="1" type="stmt"/>
-        <line num="49" count="1" type="stmt"/>
-        <line num="50" count="6" type="stmt"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="21" count="1" type="stmt"/>
+        <line num="22" count="4" type="stmt"/>
+        <line num="25" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="26" count="1" type="stmt"/>
+        <line num="29" count="3" type="stmt"/>
+        <line num="31" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="32" count="1" type="stmt"/>
+        <line num="37" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="38" count="1" type="stmt"/>
+        <line num="43" count="1" type="stmt"/>
+        <line num="50" count="1" type="stmt"/>
         <line num="51" count="6" type="stmt"/>
         <line num="52" count="6" type="stmt"/>
         <line num="54" count="6" type="cond" truecount="2" falsecount="0"/>
@@ -356,28 +361,28 @@
       <metrics statements="13" coveredstatements="13" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
       <file name="ballot.model.js" path="C:\Users\admin\Desktop\c file\labs(backend)\API Voiting Platform\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\models\ballot.model.js">
         <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="1" count="3" type="stmt"/>
-        <line num="3" count="3" type="stmt"/>
-        <line num="10" count="3" type="stmt"/>
-        <line num="12" count="3" type="stmt"/>
+        <line num="1" count="4" type="stmt"/>
+        <line num="3" count="4" type="stmt"/>
+        <line num="10" count="4" type="stmt"/>
+        <line num="12" count="4" type="stmt"/>
       </file>
       <file name="candidate.model.js" path="C:\Users\admin\Desktop\c file\labs(backend)\API Voiting Platform\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\models\candidate.model.js">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="1" count="3" type="stmt"/>
-        <line num="3" count="3" type="stmt"/>
-        <line num="10" count="3" type="stmt"/>
+        <line num="1" count="4" type="stmt"/>
+        <line num="3" count="4" type="stmt"/>
+        <line num="10" count="4" type="stmt"/>
       </file>
       <file name="poll.model.js" path="C:\Users\admin\Desktop\c file\labs(backend)\API Voiting Platform\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\models\poll.model.js">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="1" count="4" type="stmt"/>
-        <line num="3" count="4" type="stmt"/>
-        <line num="12" count="4" type="stmt"/>
+        <line num="1" count="5" type="stmt"/>
+        <line num="3" count="5" type="stmt"/>
+        <line num="12" count="5" type="stmt"/>
       </file>
       <file name="voter.model.js" path="C:\Users\admin\Desktop\c file\labs(backend)\API Voiting Platform\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\models\voter.model.js">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="1" count="2" type="stmt"/>
-        <line num="3" count="2" type="stmt"/>
-        <line num="8" count="2" type="stmt"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="8" count="3" type="stmt"/>
       </file>
     </package>
   </project>
