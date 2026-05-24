@@ -136,6 +136,32 @@ describe('castVote', () => {
         );
     });
 
+    it('409 — duplicate key error (code 11000)', async () => {
+        const { req, res, next } = buildMocks({ pollId: fakeId(), candidateId: fakeId() });
+        Voter.findOne = jest.fn().mockResolvedValue({ _id: 'vid' });
+        const poll = { _id: 'pid', status: 'active', title: 'Poll1' };
+        Poll.findById = jest.fn().mockResolvedValue(poll);
+        validatePollIsActive.mockReturnValue({ valid: true });
+        const candidate = { _id: 'cid', name: 'Candidate1', poll: 'pid' };
+        Candidate.findById = jest.fn().mockResolvedValue(candidate);
+        validateCandidateBelongsToPoll.mockReturnValue({ valid: true });
+        Ballot.findOne = jest.fn().mockResolvedValue(null);
+        const dupError = new Error('dup key');
+        dupError.code = 11000;
+        Ballot.create = jest.fn().mockRejectedValue(dupError);
+        await castVote(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(409);
+    });
+
+    it('400 — CastError в castVote', async () => {
+        const { req, res, next } = buildMocks({ pollId: fakeId(), candidateId: fakeId() });
+        const castError = new Error('cast');
+        castError.name = 'CastError';
+        Voter.findOne = jest.fn().mockRejectedValue(castError);
+        await castVote(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(400);
+    });
+
     it('next(error) — на DB помилку', async () => {
         const { req, res, next } = buildMocks({ pollId: fakeId(), candidateId: fakeId() });
         Voter.findOne = jest.fn().mockRejectedValue(new Error('db fail'));
@@ -159,6 +185,15 @@ describe('checkVoteStatus', () => {
         validateVoteStatusQuery.mockReturnValue({ valid: true });
         const { req, res, next } = buildMocks({}, {}, { voterId: 'X', pollId: fakeId() });
         Voter.findOne = jest.fn().mockResolvedValue(null);
+        await checkVoteStatus(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(404);
+    });
+
+    it('404 — опитування не знайдено в checkVoteStatus', async () => {
+        validateVoteStatusQuery.mockReturnValue({ valid: true });
+        const { req, res, next } = buildMocks({}, {}, { voterId: 'VOTER-1', pollId: fakeId() });
+        Voter.findOne = jest.fn().mockResolvedValue({ _id: 'vid' });
+        Poll.findById = jest.fn().mockResolvedValue(null);
         await checkVoteStatus(req, res, next);
         expect(res.status).toHaveBeenCalledWith(404);
     });
@@ -187,6 +222,25 @@ describe('checkVoteStatus', () => {
         await checkVoteStatus(req, res, next);
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ hasVoted: true }));
+    });
+
+    it('400 — CastError в checkVoteStatus', async () => {
+        validateVoteStatusQuery.mockReturnValue({ valid: true });
+        const { req, res, next } = buildMocks({}, {}, { voterId: 'VOTER-1', pollId: 'bad' });
+        const castError = new Error('cast');
+        castError.name = 'CastError';
+        Voter.findOne = jest.fn().mockResolvedValue({ _id: 'vid' });
+        Poll.findById = jest.fn().mockRejectedValue(castError);
+        await checkVoteStatus(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    it('next(error) — неочікувана помилка в checkVoteStatus', async () => {
+        validateVoteStatusQuery.mockReturnValue({ valid: true });
+        const { req, res, next } = buildMocks({}, {}, { voterId: 'VOTER-1', pollId: fakeId() });
+        Voter.findOne = jest.fn().mockRejectedValue(new Error('db crash'));
+        await checkVoteStatus(req, res, next);
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
     });
 });
 
@@ -219,6 +273,36 @@ describe('getPollResults', () => {
         expect(resp.results).toHaveLength(2);
         expect(resp.results[0].percentage).toBe('62.50%');
     });
+
+    it('200 — нуль голосів (всі 0.00%)', async () => {
+        Poll.findById = jest
+            .fn()
+            .mockResolvedValue({ _id: 'pid', title: 'T', status: 'active', createdAt: new Date() });
+        const sortMock = jest
+            .fn()
+            .mockResolvedValue([{ _id: 'c1', name: 'A', party: 'PA', votesCount: 0 }]);
+        const selectMock = jest.fn().mockReturnValue({ sort: sortMock });
+        Candidate.find = jest.fn().mockReturnValue({ select: selectMock });
+        const { req, res, next } = buildMocks({}, { pollId: 'pid' });
+        await getPollResults(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(200);
+        const resp = res.json.mock.calls[0][0];
+        expect(resp.results[0].percentage).toBe('0.00%');
+    });
+
+    it('400 — CastError в getPollResults', async () => {
+        Poll.findById = jest.fn().mockRejectedValue({ name: 'CastError' });
+        const { req, res, next } = buildMocks({}, { pollId: 'bad' });
+        await getPollResults(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    it('next(error) — неочікувана помилка в getPollResults', async () => {
+        Poll.findById = jest.fn().mockRejectedValue(new Error('db crash'));
+        const { req, res, next } = buildMocks({}, { pollId: fakeId() });
+        await getPollResults(req, res, next);
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
+    });
 });
 
 // ─── deleteVote ───────────────────────────────────────────────────────────────
@@ -234,6 +318,14 @@ describe('deleteVote', () => {
     it('404 — виборець не знайдений', async () => {
         const { req, res, next } = buildMocks({ pollId: fakeId() });
         Voter.findOne = jest.fn().mockResolvedValue(null);
+        await deleteVote(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(404);
+    });
+
+    it('404 — опитування не знайдено в deleteVote', async () => {
+        const { req, res, next } = buildMocks({ pollId: fakeId() });
+        Voter.findOne = jest.fn().mockResolvedValue({ _id: 'vid' });
+        Poll.findById = jest.fn().mockResolvedValue(null);
         await deleteVote(req, res, next);
         expect(res.status).toHaveBeenCalledWith(404);
     });
@@ -269,5 +361,41 @@ describe('deleteVote', () => {
         Ballot.findByIdAndDelete = jest.fn().mockResolvedValue({});
         await deleteVote(req, res, next);
         expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('400 — CastError в deleteVote', async () => {
+        const { req, res, next } = buildMocks({ pollId: fakeId() });
+        const castError = new Error('cast');
+        castError.name = 'CastError';
+        Voter.findOne = jest.fn().mockRejectedValue(castError);
+        await deleteVote(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    it('next(error) — неочікувана помилка в deleteVote', async () => {
+        const { req, res, next } = buildMocks({ pollId: fakeId() });
+        Voter.findOne = jest.fn().mockRejectedValue(new Error('db crash'));
+        await deleteVote(req, res, next);
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
+    });
+});
+
+// ─── getPollResults party branch ──────────────────────────────────────────────
+describe('getPollResults party branch', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('200 — кандидат без партії отримує "—"', async () => {
+        Poll.findById = jest
+            .fn()
+            .mockResolvedValue({ _id: 'pid', title: 'T', status: 'active', createdAt: new Date() });
+        const sortMock = jest
+            .fn()
+            .mockResolvedValue([{ _id: 'c1', name: 'A', party: undefined, votesCount: 2 }]);
+        const selectMock = jest.fn().mockReturnValue({ sort: sortMock });
+        Candidate.find = jest.fn().mockReturnValue({ select: selectMock });
+        const { req, res, next } = buildMocks({}, { pollId: 'pid' });
+        await getPollResults(req, res, next);
+        const resp = res.json.mock.calls[0][0];
+        expect(resp.results[0].party).toBe('—');
     });
 });

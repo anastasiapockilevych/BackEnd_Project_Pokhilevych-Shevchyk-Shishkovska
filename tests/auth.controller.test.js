@@ -33,6 +33,19 @@ describe('register', () => {
         expect(res.status).toHaveBeenCalledWith(400);
     });
 
+    it('400 — пароль менше 6 символів', async () => {
+        const { req, res, next } = buildMocks({
+            email: 'a@b.com',
+            password: '123',
+            fullName: 'Test',
+        });
+        await register(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith(
+            expect.objectContaining({ error: expect.stringContaining('6') }),
+        );
+    });
+
     it('409 — email вже існує', async () => {
         const { req, res, next } = buildMocks({
             email: 'a@b.com',
@@ -118,6 +131,13 @@ describe('login', () => {
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ token: 'tok' }));
     });
+
+    it('next(error) — на помилку бази', async () => {
+        const { req, res, next } = buildMocks({ email: 'a@b.com', password: '123456' });
+        User.findOne = jest.fn().mockRejectedValue(new Error('db crash'));
+        await login(req, res, next);
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
+    });
 });
 
 // ─── getMe ────────────────────────────────────────────────────────────────────
@@ -142,5 +162,14 @@ describe('getMe', () => {
         await getMe(req, res, next);
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ user: mockUser });
+    });
+
+    it('next(error) — неочікувана помилка в getMe', async () => {
+        const { req, res, next } = buildMocks();
+        req.user = { id: 'uid1' };
+        const selectMock = jest.fn().mockRejectedValue(new Error('db crash'));
+        User.findById = jest.fn().mockReturnValue({ select: selectMock });
+        await getMe(req, res, next);
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
     });
 });

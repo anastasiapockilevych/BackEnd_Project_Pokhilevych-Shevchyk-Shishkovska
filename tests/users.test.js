@@ -1,3 +1,4 @@
+/* eslint-disable global-require */
 describe('UserSchema pre-save hook та comparePassword', () => {
     let User;
     let bcrypt;
@@ -18,9 +19,11 @@ describe('UserSchema pre-save hook та comparePassword', () => {
      * Знаходимо власний pre-save хук (index 2 — після saveSubdocs та timestamps).
      */
     const getUserPreSave = () => {
+        // eslint-disable-next-line no-underscore-dangle
         const pres = User.schema.s.hooks._pres.get('save');
         // Знаходимо функцію, яка перевіряє isModified('password')
-        return pres.find(p => p.fn.toString().includes("isModified('password')")).fn;
+        // eslint-disable-next-line prettier/prettier
+        return pres.find(p => p.fn.toString().includes('isModified(\'password\')')).fn;
     };
 
     it('pre-save: хешує пароль коли isModified=true', async () => {

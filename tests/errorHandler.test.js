@@ -58,12 +58,21 @@ describe('errorHandler', () => {
         );
     });
 
-    it('409 — дублікат ключа (code 11000)', () => {
+    it('409 — дублікат ключа (code 11000) з keyValue', () => {
         const { req, res, next } = buildMocks();
         const err = { code: 11000, keyValue: { email: 'a@b.com' }, message: 'dup key' };
         errorHandler(err, req, res, next);
         expect(res.status).toHaveBeenCalledWith(409);
         expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'DUPLICATE_KEY' }));
+    });
+
+    it('409 — дублікат ключа без keyValue (поле = "поле")', () => {
+        const { req, res, next } = buildMocks();
+        const err = { code: 11000, keyValue: {}, message: 'dup key' };
+        errorHandler(err, req, res, next);
+        expect(res.status).toHaveBeenCalledWith(409);
+        const call = res.json.mock.calls[0][0];
+        expect(call.field).toBe('поле');
     });
 
     it('401 — JsonWebTokenError', () => {
@@ -104,5 +113,30 @@ describe('errorHandler', () => {
         errorHandler(err, req, res, next);
         const call = res.json.mock.calls[0][0];
         expect(call.stack).toBeDefined();
+    });
+
+    it('у test/production НЕ додає stack', () => {
+        process.env.NODE_ENV = 'test';
+        const { req, res, next } = buildMocks();
+        const err = new Error('Test error');
+        errorHandler(err, req, res, next);
+        const call = res.json.mock.calls[0][0];
+        expect(call.stack).toBeUndefined();
+    });
+
+    it('500 — err.message відсутній (fallback "Внутрішня помилка сервера.")', () => {
+        const { req, res, next } = buildMocks();
+        const err = { status: 500 };
+        errorHandler(err, req, res, next);
+        const call = res.json.mock.calls[0][0];
+        expect(call.error).toBe('Внутрішня помилка сервера.');
+    });
+
+    it('500 — err.code відсутній (fallback "INTERNAL_ERROR")', () => {
+        const { req, res, next } = buildMocks();
+        const err = { status: 500, message: 'oops' };
+        errorHandler(err, req, res, next);
+        const call = res.json.mock.calls[0][0];
+        expect(call.code).toBe('INTERNAL_ERROR');
     });
 });

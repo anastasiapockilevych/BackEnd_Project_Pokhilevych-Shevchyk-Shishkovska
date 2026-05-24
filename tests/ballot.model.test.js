@@ -2,17 +2,17 @@ const mongoose = require('mongoose');
 const Ballot = require('../models/ballot.model'); // Перевір шлях до файлу
 
 describe('Ballot Model Test', () => {
-    
     afterEach(() => {
         jest.clearAllMocks();
     });
 
+    // eslint-disable-next-line prettier/prettier
     it('повинен успішно пройти валідацію з усіма обов\'язковими полями і встановити дату votedAt', () => {
         // Генеруємо правильні ObjectId для імітації зв'язків
         const validBallot = new Ballot({
             voter: new mongoose.Types.ObjectId(),
             poll: new mongoose.Types.ObjectId(),
-            candidate: new mongoose.Types.ObjectId()
+            candidate: new mongoose.Types.ObjectId(),
         });
 
         const error = validBallot.validateSync();
@@ -26,7 +26,7 @@ describe('Ballot Model Test', () => {
     it('повинен викинути помилку валідації, якщо відсутнє поле voter', () => {
         const invalidBallot = new Ballot({
             poll: new mongoose.Types.ObjectId(),
-            candidate: new mongoose.Types.ObjectId()
+            candidate: new mongoose.Types.ObjectId(),
         });
 
         const error = invalidBallot.validateSync();
@@ -39,7 +39,7 @@ describe('Ballot Model Test', () => {
     it('повинен викинути помилку валідації, якщо відсутнє поле poll', () => {
         const invalidBallot = new Ballot({
             voter: new mongoose.Types.ObjectId(),
-            candidate: new mongoose.Types.ObjectId()
+            candidate: new mongoose.Types.ObjectId(),
         });
 
         const error = invalidBallot.validateSync();
@@ -52,7 +52,7 @@ describe('Ballot Model Test', () => {
         const invalidBallot = new Ballot({
             voter: 'просто_текст_замість_айді', // Неправильний формат
             poll: new mongoose.Types.ObjectId(),
-            candidate: new mongoose.Types.ObjectId()
+            candidate: new mongoose.Types.ObjectId(),
         });
 
         const error = invalidBallot.validateSync();
@@ -62,5 +62,4 @@ describe('Ballot Model Test', () => {
         expect(error.errors.voter).toBeDefined();
         expect(error.errors.voter.name).toBe('CastError');
     });
-
 });

@@ -94,6 +94,17 @@ describe('requireAuth', () => {
         expect(next).toHaveBeenCalled();
         expect(req.user).toEqual(mockUser);
     });
+
+    it('next(error) — неочікувана помилка', async () => {
+        const req = buildReq({ authorization: 'Bearer good' });
+        const res = buildRes();
+        const next = jest.fn();
+        jwt.verify = jest.fn().mockReturnValue({ id: 'uid1' });
+        const selectMock = jest.fn().mockRejectedValue(new Error('db error'));
+        User.findById = jest.fn().mockReturnValue({ select: selectMock });
+        await requireAuth(req, res, next);
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
+    });
 });
 
 // ─── requireAdmin ─────────────────────────────────────────────────────────────
@@ -146,6 +157,59 @@ describe('requireAdmin', () => {
         await requireAdmin(req, res, next);
         expect(next).toHaveBeenCalled();
     });
+
+    it('401 — JsonWebTokenError або TokenExpiredError в requireAdmin', async () => {
+        process.env.ADMIN_KEY = 'secret';
+        const req = buildReq({ authorization: 'Bearer bad' });
+        const res = buildRes();
+        const next = jest.fn();
+        jwt.verify = jest.fn().mockImplementation(() => {
+            const e = new Error('invalid');
+            e.name = 'JsonWebTokenError';
+            throw e;
+        });
+        await requireAdmin(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    it('401 — TokenExpiredError в requireAdmin', async () => {
+        process.env.ADMIN_KEY = 'secret';
+        const req = buildReq({ authorization: 'Bearer expired' });
+        const res = buildRes();
+        const next = jest.fn();
+        jwt.verify = jest.fn().mockImplementation(() => {
+            const e = new Error('expired');
+            e.name = 'TokenExpiredError';
+            throw e;
+        });
+        await requireAdmin(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(401);
+    });
+
+    it('next(error) — неочікувана помилка в requireAdmin', async () => {
+        process.env.ADMIN_KEY = 'secret';
+        const req = buildReq({ authorization: 'Bearer tok' });
+        const res = buildRes();
+        const next = jest.fn();
+        jwt.verify = jest.fn().mockReturnValue({ id: 'uid1' });
+        const selectMock = jest.fn().mockRejectedValue(new Error('db crash'));
+        User.findById = jest.fn().mockReturnValue({ select: selectMock });
+        await requireAdmin(req, res, next);
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
+    });
+
+    it('403 — токен є але user null (видалений)', async () => {
+        process.env.ADMIN_KEY = 'secret';
+        const req = buildReq({ authorization: 'Bearer tok' });
+        const res = buildRes();
+        const next = jest.fn();
+        jwt.verify = jest.fn().mockReturnValue({ id: 'uid1' });
+        const selectMock = jest.fn().mockResolvedValue(null);
+        User.findById = jest.fn().mockReturnValue({ select: selectMock });
+        await requireAdmin(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(403);
+    });
 });
 
 // ─── requireActivePoll ────────────────────────────────────────────────────────
@@ -187,5 +251,24 @@ describe('requireActivePoll', () => {
         await requireActivePoll(req, res, next);
         expect(next).toHaveBeenCalled();
         expect(req.poll).toEqual(mockPoll);
+    });
+
+    it('400 — CastError при невалідному pollId', async () => {
+        const req = buildReq({}, { pollId: 'bad-id' });
+        const res = buildRes();
+        const next = jest.fn();
+        Poll.findById = jest.fn().mockRejectedValue({ name: 'CastError' });
+        await requireActivePoll(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    it('next(error) — неочікувана помилка в requireActivePoll', async () => {
+        const req = buildReq({}, { pollId: 'abc' });
+        const res = buildRes();
+        const next = jest.fn();
+        Poll.findById = jest.fn().mockRejectedValue(new Error('db crash'));
+        await requireActivePoll(req, res, next);
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
     });
 });

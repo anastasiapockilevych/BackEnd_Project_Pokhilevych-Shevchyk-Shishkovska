@@ -209,6 +209,71 @@ describe('getPollAnalytics', () => {
         expect(jsonArg.timeline[1].cumulative).toBe(3);
     });
 
+    it('200 — timeline: бюлетень без дати пропускається', async () => {
+        const mockPoll = {
+            _id: fakeId(),
+            title: 'No Date Poll',
+            status: 'active',
+            category: null,
+            createdAt: new Date(),
+        };
+        Poll.findById = jest.fn().mockResolvedValue(mockPoll);
+        mockCandidateFind([{ name: 'X', party: 'Y', votesCount: 1 }]);
+        Voter.countDocuments = jest.fn().mockResolvedValue(10);
+        // один бюлетень без будь-якої дати
+        mockBallotFind([{ createdAt: null, votedAt: null }]);
+
+        const { req, res, next } = buildMocks({ pollId: fakeId() });
+        await getPollAnalytics(req, res, next);
+
+        const jsonArg = res.json.mock.calls[0][0];
+        // бюлетень без дати не додається до timeline
+        expect(jsonArg.timeline).toEqual([]);
+    });
+
+    it('200 — timeline: невалідна дата пропускається (NaN)', async () => {
+        const mockPoll = {
+            _id: fakeId(),
+            title: 'Bad Date Poll',
+            status: 'active',
+            category: null,
+            createdAt: new Date(),
+        };
+        Poll.findById = jest.fn().mockResolvedValue(mockPoll);
+        mockCandidateFind([{ name: 'X', party: 'Y', votesCount: 1 }]);
+        Voter.countDocuments = jest.fn().mockResolvedValue(10);
+        // createdAt — невалідна дата
+        mockBallotFind([{ createdAt: 'not-a-date' }]);
+
+        const { req, res, next } = buildMocks({ pollId: fakeId() });
+        await getPollAnalytics(req, res, next);
+
+        const jsonArg = res.json.mock.calls[0][0];
+        // невалідна дата пропускається — timeline порожній
+        expect(jsonArg.timeline).toEqual([]);
+    });
+
+    it('200 — timeline: votedAt використовується коли немає createdAt', async () => {
+        const mockPoll = {
+            _id: fakeId(),
+            title: 'VotedAt Poll',
+            status: 'active',
+            category: null,
+            createdAt: new Date(),
+        };
+        Poll.findById = jest.fn().mockResolvedValue(mockPoll);
+        mockCandidateFind([{ name: 'X', party: 'Y', votesCount: 1 }]);
+        Voter.countDocuments = jest.fn().mockResolvedValue(10);
+        mockBallotFind([{ createdAt: undefined, votedAt: new Date('2024-06-01T10:00:00Z') }]);
+
+        const { req, res, next } = buildMocks({ pollId: fakeId() });
+        await getPollAnalytics(req, res, next);
+
+        const jsonArg = res.json.mock.calls[0][0];
+        expect(jsonArg.timeline.length).toBe(1);
+        expect(jsonArg.timeline[0].votes).toBe(1);
+    });
+
     it('next(error) — неочікувана помилка', async () => {
         Poll.findById = jest.fn().mockRejectedValue(new Error('DB error'));
         const { req, res, next } = buildMocks({ pollId: fakeId() });

@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const Candidate = require('../models/candidate.model'); // Перевір шлях до файлу
 
 describe('Candidate Model Test', () => {
-    
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -10,7 +9,7 @@ describe('Candidate Model Test', () => {
     it('повинен успішно пройти валідацію з мінімальними даними та встановити default значення', () => {
         // Передаємо ТІЛЬКИ обов'язкове поле name
         const validCandidate = new Candidate({
-            name: 'Олександр'
+            name: 'Олександр',
         });
 
         const error = validCandidate.validateSync();
@@ -25,16 +24,17 @@ describe('Candidate Model Test', () => {
             name: 'Олександр',
             party: 'Партія програмістів',
             votesCount: 15,
-            poll: new mongoose.Types.ObjectId() // Генеруємо правильний ObjectID для імітації опитування
+            poll: new mongoose.Types.ObjectId(), // Генеруємо правильний ObjectID для імітації опитування
         });
 
         const error = fullCandidate.validateSync();
         expect(error).toBeUndefined();
     });
 
+    // eslint-disable-next-line prettier/prettier
     it('повинен викинути помилку валідації, якщо відсутнє обов\'язкове поле name', () => {
         const candidateWithoutName = new Candidate({
-            party: 'Безпартійна'
+            party: 'Безпартійна',
         });
 
         const error = candidateWithoutName.validateSync();
@@ -48,7 +48,7 @@ describe('Candidate Model Test', () => {
     it('повинен викинути помилку, якщо тип даних votesCount неправильний (рядок замість числа)', () => {
         const invalidCandidate = new Candidate({
             name: 'Марія',
-            votesCount: 'багато' // Mongoose очікує Number, а ми даємо String
+            votesCount: 'багато', // Mongoose очікує Number, а ми даємо String
         });
 
         const error = invalidCandidate.validateSync();
@@ -58,5 +58,4 @@ describe('Candidate Model Test', () => {
         expect(error.errors.votesCount).toBeDefined();
         expect(error.errors.votesCount.name).toBe('CastError');
     });
-
 });

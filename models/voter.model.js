@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const voterSchema = new mongoose.Schema(
     {
         voterId: { type: String, required: true, unique: true, trim: true },
-        fullName: { type: String, required: true, trim: true },
+        fullName: { type: String, trim: true },
         password: { type: String, default: null }, // null = ще не зареєстрований через auth
         role: { type: String, enum: ['voter', 'admin'], default: 'voter' },
     },
