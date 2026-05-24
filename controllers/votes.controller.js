@@ -3,26 +3,31 @@ const Candidate = require('../models/candidate.model');
 const Voter = require('../models/voter.model');
 const Poll = require('../models/poll.model');
 const {
-    validateVoteFields,
     validateVoteStatusQuery,
-    validateDeleteVoteFields,
     validateCandidateBelongsToPoll,
     validatePollIsActive,
 } = require('../helpers/vote.helpers');
 
+/**
+ * POST /votes
+ * Голосування. voterId береться з JWT токену (req.user.voterId).
+ * Анонімність: в Ballot зберігається лише ObjectId Voter, без email/імені.
+ */
 const castVote = async (req, res, next) => {
     try {
-        const { voterId, pollId, candidateId } = req.body;
+        const { pollId, candidateId } = req.body;
 
-        const fieldsValidation = validateVoteFields(voterId, pollId, candidateId);
-        if (!fieldsValidation.valid) {
-            return res.status(400).json({ error: fieldsValidation.error });
+        if (!pollId || !candidateId) {
+            return res.status(400).json({ error: 'Необхідні поля: pollId, candidateId.' });
         }
 
-        const voter = await Voter.findOne({ voterId: voterId.trim() });
+        // voterId з JWT — не з тіла запиту
+        const { voterId } = req.user;
+
+        const voter = await Voter.findOne({ voterId });
         if (!voter) {
             return res.status(404).json({
-                error: `Виборця з ID "${voterId}" не знайдено. Зверніться до адміністратора для реєстрації.`,
+                error: 'Виборця не знайдено. Зверніться до адміністратора.',
             });
         }
 
@@ -46,27 +51,20 @@ const castVote = async (req, res, next) => {
             return res.status(400).json({ error: candidatePollValidation.error });
         }
 
-        // Захист від подвійного голосування
-        const existingBallot = await Ballot.findOne({
-            voter: voter._id,
-            poll: poll._id,
-        });
+        const existingBallot = await Ballot.findOne({ voter: voter._id, poll: poll._id });
         if (existingBallot) {
             return res.status(409).json({
                 error: `Ви вже проголосували в опитуванні "${poll.title}". Повторне голосування заборонено.`,
             });
         }
 
-        // submittedAt встановлюється автоматично через { timestamps: true } у схемі Ballot
         const ballot = await Ballot.create({
             voter: voter._id,
             poll: poll._id,
             candidate: candidate._id,
         });
 
-        await Candidate.findByIdAndUpdate(candidate._id, {
-            $inc: { votesCount: 1 },
-        });
+        await Candidate.findByIdAndUpdate(candidate._id, { $inc: { votesCount: 1 } });
 
         return res.status(201).json({
             message: `Ваш голос за "${candidate.name}" успішно зараховано!`,
@@ -74,7 +72,7 @@ const castVote = async (req, res, next) => {
                 id: ballot._id,
                 poll: poll.title,
                 candidate: candidate.name,
-                submittedAt: ballot.createdAt,
+                submittedAt: ballot.votedAt || ballot.createdAt,
             },
         });
     } catch (error) {
@@ -117,17 +115,16 @@ const checkVoteStatus = async (req, res, next) => {
         if (!ballot) {
             return res.status(200).json({
                 hasVoted: false,
-                message: `Виборець "${voter.fullName}" ще не голосував у цьому опитуванні.`,
+                message: 'Виборець ще не голосував у цьому опитуванні.',
             });
         }
 
         return res.status(200).json({
             hasVoted: true,
-            message: `Виборець "${voter.fullName}" вже проголосував.`,
+            message: 'Виборець вже проголосував.',
+            // Анонімність: не повертаємо ім'я кандидата (не показуємо хто за кого)
             votedFor: {
-                candidateName: ballot.candidate.name,
-                party: ballot.candidate.party || '—',
-                submittedAt: ballot.createdAt,
+                submittedAt: ballot.votedAt || ballot.createdAt,
             },
         });
     } catch (error) {
@@ -178,16 +175,20 @@ const getPollResults = async (req, res, next) => {
     }
 };
 
+/**
+ * DELETE /votes
+ * voterId береться з JWT (req.user.voterId).
+ */
 const deleteVote = async (req, res, next) => {
     try {
-        const { voterId, pollId } = req.body;
+        const { pollId } = req.body;
+        const { voterId } = req.user;
 
-        const fieldsValidation = validateDeleteVoteFields(voterId, pollId);
-        if (!fieldsValidation.valid) {
-            return res.status(400).json({ error: fieldsValidation.error });
+        if (!pollId) {
+            return res.status(400).json({ error: 'Необхідне поле: pollId.' });
         }
 
-        const voter = await Voter.findOne({ voterId: voterId.trim() });
+        const voter = await Voter.findOne({ voterId });
         if (!voter) {
             return res.status(404).json({ error: 'Виборця не знайдено.' });
         }
@@ -204,30 +205,17 @@ const deleteVote = async (req, res, next) => {
             });
         }
 
-        const ballot = await Ballot.findOne({
-            voter: voter._id,
-            poll: poll._id,
-        });
-
+        const ballot = await Ballot.findOne({ voter: voter._id, poll: poll._id });
         if (!ballot) {
-            return res.status(404).json({
-                error: `Виборець "${voter.fullName}" не голосував у цьому опитуванні.`,
-            });
+            return res.status(404).json({ error: 'Ви не голосували у цьому опитуванні.' });
         }
 
-        // Зменшуємо лічильник голосів кандидата перед видаленням бюлетеня
-        await Candidate.findByIdAndUpdate(ballot.candidate, {
-            $inc: { votesCount: -1 },
-        });
-
+        await Candidate.findByIdAndUpdate(ballot.candidate, { $inc: { votesCount: -1 } });
         await Ballot.findByIdAndDelete(ballot._id);
 
         return res.status(200).json({
-            message: `Голос виборця "${voter.fullName}" в опитуванні "${poll.title}" успішно скасовано.`,
-            cancelled: {
-                pollId: poll._id,
-                voterId: voter.voterId,
-            },
+            message: `Голос в опитуванні "${poll.title}" успішно скасовано.`,
+            cancelled: { pollId: poll._id, voterId },
         });
     } catch (error) {
         if (error.name === 'CastError') {

@@ -265,7 +265,7 @@ describe('getPollById', () => {
 describe('addCandidate', () => {
     beforeEach(() => jest.clearAllMocks());
 
-    it('400 — невалідне ім\'я', async () => {
+    it('400 — невалідне ім’я', async () => {
         validateCandidateName.mockReturnValue({ valid: false, error: 'err' });
         const { req, res, next } = buildMocks({ name: '' }, { pollId: fakeId() });
         await addCandidate(req, res, next);

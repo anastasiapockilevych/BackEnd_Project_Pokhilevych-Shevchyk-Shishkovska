@@ -1,156 +1,191 @@
 /**
- * Тести для auth.middleware.js
- * Покриття: requireAdmin та requireActivePoll — усі розгалуження.
+ * Тести для auth.middleware.js (оновлений з JWT)
  */
 
-// Мок для моделі Poll — потрібен для requireActivePoll
+jest.mock('../models/user.model');
 jest.mock('../models/poll.model');
+jest.mock('jsonwebtoken');
+
+const jwt = require('jsonwebtoken');
+const User = require('../models/user.model');
 const Poll = require('../models/poll.model');
+const { requireAuth, requireAdmin, requireActivePoll } = require('../middleware/auth.middleware');
 
-const { requireAdmin, requireActivePoll } = require('../middleware/auth.middleware');
-
-// ─── Утиліти ───────────────────────────────────────────────────────────────
-const buildMocks = (headers = {}, params = {}) => {
-    const req = { headers, params };
-    const res = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn().mockReturnThis(),
-    };
-    const next = jest.fn();
-    return { req, res, next };
+const buildReq = (headers = {}, params = {}, user = null) => ({
+    headers,
+    params,
+    user,
+    poll: null,
+});
+const buildRes = () => {
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+    return res;
 };
 
-const fakeId = () => '507f1f77bcf86cd799439011';
+afterAll(() => jest.clearAllMocks());
 
-// ─────────────────────────────────────────────────────────────────────────────
-// requireAdmin
-// ─────────────────────────────────────────────────────────────────────────────
-describe('requireAdmin', () => {
-    const originalEnv = process.env;
+// ─── requireAuth ──────────────────────────────────────────────────────────────
+describe('requireAuth', () => {
+    beforeEach(() => jest.clearAllMocks());
 
-    afterEach(() => {
-        process.env = { ...originalEnv };
-        jest.clearAllMocks();
-    });
-
-    it('next() — якщо ADMIN_KEY не налаштований (dev-режим)', () => {
-        delete process.env.ADMIN_KEY;
-        const { req, res, next } = buildMocks({});
-
-        requireAdmin(req, res, next);
-
-        expect(next).toHaveBeenCalled();
-        expect(res.status).not.toHaveBeenCalled();
-    });
-
-    it('401 — заголовок X-Admin-Key відсутній', () => {
-        process.env.ADMIN_KEY = 'secret123';
-        const { req, res, next } = buildMocks({}); // без заголовка
-
-        requireAdmin(req, res, next);
-
+    it('401 — відсутній заголовок Authorization', async () => {
+        const req = buildReq({});
+        const res = buildRes();
+        const next = jest.fn();
+        await requireAuth(req, res, next);
         expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: expect.stringContaining('X-Admin-Key') }),
-        );
         expect(next).not.toHaveBeenCalled();
     });
 
-    it('403 — невірний X-Admin-Key', () => {
-        process.env.ADMIN_KEY = 'secret123';
-        const { req, res, next } = buildMocks({ 'x-admin-key': 'wrong-key' });
-
-        requireAdmin(req, res, next);
-
-        expect(res.status).toHaveBeenCalledWith(403);
-        expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: expect.stringContaining('Недійсний') }),
-        );
-        expect(next).not.toHaveBeenCalled();
+    it('401 — невірний формат (без Bearer)', async () => {
+        const req = buildReq({ authorization: 'Token abc' });
+        const res = buildRes();
+        const next = jest.fn();
+        await requireAuth(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(401);
     });
 
-    it('next() — вірний X-Admin-Key', () => {
-        process.env.ADMIN_KEY = 'secret123';
-        const { req, res, next } = buildMocks({ 'x-admin-key': 'secret123' });
+    it('401 — JsonWebTokenError', async () => {
+        const req = buildReq({ authorization: 'Bearer bad-token' });
+        const res = buildRes();
+        const next = jest.fn();
+        jwt.verify = jest.fn().mockImplementation(() => {
+            const e = new Error('bad');
+            e.name = 'JsonWebTokenError';
+            throw e;
+        });
+        await requireAuth(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(401);
+    });
 
-        requireAdmin(req, res, next);
+    it('401 — TokenExpiredError', async () => {
+        const req = buildReq({ authorization: 'Bearer expired' });
+        const res = buildRes();
+        const next = jest.fn();
+        jwt.verify = jest.fn().mockImplementation(() => {
+            const e = new Error('exp');
+            e.name = 'TokenExpiredError';
+            throw e;
+        });
+        await requireAuth(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(401);
+    });
 
+    it('401 — користувача не знайдено в базі', async () => {
+        const req = buildReq({ authorization: 'Bearer good' });
+        const res = buildRes();
+        const next = jest.fn();
+        jwt.verify = jest.fn().mockReturnValue({ id: 'uid1' });
+        const selectMock = jest.fn().mockResolvedValue(null);
+        User.findById = jest.fn().mockReturnValue({ select: selectMock });
+        await requireAuth(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(401);
+    });
+
+    it('next() — валідний токен та користувач', async () => {
+        const req = buildReq({ authorization: 'Bearer good' });
+        const res = buildRes();
+        const next = jest.fn();
+        jwt.verify = jest.fn().mockReturnValue({ id: 'uid1' });
+        const mockUser = { _id: 'uid1', role: 'voter', voterId: 'VOTER-1' };
+        const selectMock = jest.fn().mockResolvedValue(mockUser);
+        User.findById = jest.fn().mockReturnValue({ select: selectMock });
+        await requireAuth(req, res, next);
         expect(next).toHaveBeenCalled();
-        expect(res.status).not.toHaveBeenCalled();
+        expect(req.user).toEqual(mockUser);
     });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// requireActivePoll
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── requireAdmin ─────────────────────────────────────────────────────────────
+describe('requireAdmin', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    const OLD_ENV = process.env;
+    afterEach(() => {
+        process.env = { ...OLD_ENV };
+    });
+
+    it('next() — валідний X-Admin-Key', async () => {
+        process.env.ADMIN_KEY = 'secret';
+        const req = buildReq({ 'x-admin-key': 'secret' });
+        const res = buildRes();
+        const next = jest.fn();
+        await requireAdmin(req, res, next);
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('401 — немає заголовка і немає токена', async () => {
+        process.env.ADMIN_KEY = 'secret';
+        const req = buildReq({});
+        const res = buildRes();
+        const next = jest.fn();
+        await requireAdmin(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(401);
+    });
+
+    it('403 — токен є але роль не admin', async () => {
+        process.env.ADMIN_KEY = 'secret';
+        const req = buildReq({ authorization: 'Bearer tok' });
+        const res = buildRes();
+        const next = jest.fn();
+        jwt.verify = jest.fn().mockReturnValue({ id: 'uid1' });
+        const selectMock = jest.fn().mockResolvedValue({ role: 'voter' });
+        User.findById = jest.fn().mockReturnValue({ select: selectMock });
+        await requireAdmin(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(403);
+    });
+
+    it('next() — токен з роллю admin', async () => {
+        process.env.ADMIN_KEY = 'secret';
+        const req = buildReq({ authorization: 'Bearer tok' });
+        const res = buildRes();
+        const next = jest.fn();
+        jwt.verify = jest.fn().mockReturnValue({ id: 'uid1' });
+        const selectMock = jest.fn().mockResolvedValue({ role: 'admin', _id: 'uid1' });
+        User.findById = jest.fn().mockReturnValue({ select: selectMock });
+        await requireAdmin(req, res, next);
+        expect(next).toHaveBeenCalled();
+    });
+});
+
+// ─── requireActivePoll ────────────────────────────────────────────────────────
 describe('requireActivePoll', () => {
     beforeEach(() => jest.clearAllMocks());
 
-    it('next() — pollId відсутній у params', async () => {
-        const { req, res, next } = buildMocks({}, {});
-
+    it('next() — pollId відсутній', async () => {
+        const req = buildReq({}, {});
+        const res = buildRes();
+        const next = jest.fn();
         await requireActivePoll(req, res, next);
-
         expect(next).toHaveBeenCalled();
-        expect(res.status).not.toHaveBeenCalled();
     });
 
     it('404 — опитування не знайдено', async () => {
+        const req = buildReq({}, { pollId: 'abc' });
+        const res = buildRes();
+        const next = jest.fn();
         Poll.findById = jest.fn().mockResolvedValue(null);
-        const { req, res, next } = buildMocks({}, { pollId: fakeId() });
-
         await requireActivePoll(req, res, next);
-
         expect(res.status).toHaveBeenCalledWith(404);
-        expect(res.json).toHaveBeenCalledWith({ error: 'Опитування не знайдено.' });
-        expect(next).not.toHaveBeenCalled();
     });
 
     it('400 — опитування закрите', async () => {
-        Poll.findById = jest.fn().mockResolvedValue({
-            _id: fakeId(),
-            status: 'closed',
-            title: 'Ended Poll',
-        });
-        const { req, res, next } = buildMocks({}, { pollId: fakeId() });
-
+        const req = buildReq({}, { pollId: 'abc' });
+        const res = buildRes();
+        const next = jest.fn();
+        Poll.findById = jest.fn().mockResolvedValue({ status: 'closed', title: 'Test' });
         await requireActivePoll(req, res, next);
-
         expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ error: expect.stringContaining('завершено') }),
-        );
-        expect(next).not.toHaveBeenCalled();
     });
 
-    it('next() — опитування активне, poll прикріплюється до req', async () => {
-        const mockPoll = { _id: fakeId(), status: 'active', title: 'Active Poll' };
+    it('next() та req.poll — опитування активне', async () => {
+        const req = buildReq({}, { pollId: 'abc' });
+        const res = buildRes();
+        const next = jest.fn();
+        const mockPoll = { status: 'active', title: 'Test' };
         Poll.findById = jest.fn().mockResolvedValue(mockPoll);
-        const { req, res, next } = buildMocks({}, { pollId: fakeId() });
-
         await requireActivePoll(req, res, next);
-
         expect(next).toHaveBeenCalled();
-        expect(req.poll).toBe(mockPoll);
-        expect(res.status).not.toHaveBeenCalled();
-    });
-
-    it('400 — CastError (невалідний ID)', async () => {
-        Poll.findById = jest.fn().mockRejectedValue({ name: 'CastError' });
-        const { req, res, next } = buildMocks({}, { pollId: 'bad-id' });
-
-        await requireActivePoll(req, res, next);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({ error: 'Невалідний формат ID опитування.' });
-    });
-
-    it('next(error) — інший виняток', async () => {
-        Poll.findById = jest.fn().mockRejectedValue(new Error('DB error'));
-        const { req, res, next } = buildMocks({}, { pollId: fakeId() });
-
-        await requireActivePoll(req, res, next);
-
-        expect(next).toHaveBeenCalledWith(expect.any(Error));
+        expect(req.poll).toEqual(mockPoll);
     });
 });

@@ -130,7 +130,7 @@ describe('validateCandidateName', () => {
         expect(result.valid).toBe(false);
     });
 
-    it('valid — нормальне ім\'я', () => {
+    it('valid — нормальне ім’я', () => {
         const result = validateCandidateName('Петро Порошенко');
         expect(result.valid).toBe(true);
     });

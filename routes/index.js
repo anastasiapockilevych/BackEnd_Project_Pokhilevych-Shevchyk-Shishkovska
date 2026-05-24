@@ -114,7 +114,12 @@ router.get('/seed', async (req, res) => {
                 poll: mayoralPoll._id,
                 votesCount: 0,
             },
-            { name: "В'ячеслав Кишлярук", party: 'УДАР', poll: mayoralPoll._id, votesCount: 0 },
+            {
+                name: 'В’ячеслав Кишлярук',
+                party: 'УДАР',
+                poll: mayoralPoll._id,
+                votesCount: 0,
+            },
             { name: 'Віталій Ткачук', party: 'Свобода', poll: mayoralPoll._id, votesCount: 0 },
             { name: 'Ілля Хочь', party: 'Самовисуванець', poll: mayoralPoll._id, votesCount: 0 },
 
@@ -132,7 +137,7 @@ router.get('/seed', async (req, res) => {
                 votesCount: 0,
             },
             {
-                name: "Об'єднання Самопоміч",
+                name: 'Об\u2019єднання Самопоміч',
                 party: 'Самопоміч',
                 poll: parliamentaryPoll._id,
                 votesCount: 0,
