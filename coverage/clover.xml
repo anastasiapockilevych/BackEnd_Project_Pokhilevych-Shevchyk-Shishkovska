@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1779625317093" clover="3.2.0">
-  <project timestamp="1779625317093" name="All files">
-    <metrics statements="460" coveredstatements="437" conditionals="288" coveredconditionals="259" methods="46" coveredmethods="46" elements="794" coveredelements="742" complexity="0" loc="460" ncloc="460" packages="4" files="13" classes="13"/>
+<coverage generated="1779626101151" clover="3.2.0">
+  <project timestamp="1779626101151" name="All files">
+    <metrics statements="460" coveredstatements="433" conditionals="288" coveredconditionals="253" methods="46" coveredmethods="44" elements="794" coveredelements="730" complexity="0" loc="460" ncloc="460" packages="4" files="13" classes="13"/>
     <package name="controllers">
       <metrics statements="296" coveredstatements="280" conditionals="172" coveredconditionals="154" methods="27" coveredmethods="27"/>
       <file name="analytics.controller.js" path="D:\Університет\Лабораторні\BackEnd Project\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\controllers\analytics.controller.js">
@@ -467,25 +467,25 @@
       </file>
     </package>
     <package name="models">
-      <metrics statements="29" coveredstatements="29" conditionals="8" coveredconditionals="8" methods="4" coveredmethods="4"/>
+      <metrics statements="29" coveredstatements="25" conditionals="8" coveredconditionals="2" methods="4" coveredmethods="2"/>
       <file name="ballot.model.js" path="D:\Університет\Лабораторні\BackEnd Project\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\models\ballot.model.js">
         <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="1" count="3" type="stmt"/>
-        <line num="3" count="3" type="stmt"/>
-        <line num="10" count="3" type="stmt"/>
-        <line num="12" count="3" type="stmt"/>
+        <line num="1" count="4" type="stmt"/>
+        <line num="3" count="4" type="stmt"/>
+        <line num="10" count="4" type="stmt"/>
+        <line num="12" count="4" type="stmt"/>
       </file>
       <file name="candidate.model.js" path="D:\Університет\Лабораторні\BackEnd Project\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\models\candidate.model.js">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="1" count="3" type="stmt"/>
-        <line num="3" count="3" type="stmt"/>
-        <line num="10" count="3" type="stmt"/>
+        <line num="1" count="4" type="stmt"/>
+        <line num="3" count="4" type="stmt"/>
+        <line num="10" count="4" type="stmt"/>
       </file>
       <file name="poll.model.js" path="D:\Університет\Лабораторні\BackEnd Project\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\models\poll.model.js">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="1" count="4" type="stmt"/>
-        <line num="3" count="4" type="stmt"/>
-        <line num="12" count="4" type="stmt"/>
+        <line num="1" count="5" type="stmt"/>
+        <line num="3" count="5" type="stmt"/>
+        <line num="12" count="5" type="stmt"/>
       </file>
       <file name="user.model.js" path="D:\Університет\Лабораторні\BackEnd Project\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\models\user.model.js">
         <metrics statements="9" coveredstatements="9" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="2"/>
@@ -500,16 +500,16 @@
         <line num="26" count="3" type="stmt"/>
       </file>
       <file name="voter.model.js" path="D:\Університет\Лабораторні\BackEnd Project\BackEnd_Project_Pokhilevych-Shevchyk-Shishkovska\models\voter.model.js">
-        <metrics statements="10" coveredstatements="10" conditionals="6" coveredconditionals="6" methods="2" coveredmethods="2"/>
+        <metrics statements="10" coveredstatements="6" conditionals="6" coveredconditionals="0" methods="2" coveredmethods="0"/>
         <line num="1" count="4" type="stmt"/>
         <line num="2" count="4" type="stmt"/>
         <line num="4" count="4" type="stmt"/>
         <line num="14" count="4" type="stmt"/>
-        <line num="15" count="3" type="cond" truecount="4" falsecount="0"/>
-        <line num="16" count="1" type="stmt"/>
+        <line num="15" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="16" count="0" type="stmt"/>
         <line num="19" count="4" type="stmt"/>
-        <line num="20" count="3" type="cond" truecount="2" falsecount="0"/>
-        <line num="21" count="2" type="stmt"/>
+        <line num="20" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="21" count="0" type="stmt"/>
         <line num="24" count="4" type="stmt"/>
       </file>
     </package>
